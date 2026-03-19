@@ -1,0 +1,24 @@
+{
+  "name": "NEXUS — La Super-App Sociale",
+  "short_name": "NEXUS",
+  "description": "Posts, Reels, Messages, Serveurs, Monétisation créateur",
+  "start_url": "/feed",
+  "display": "standalone",
+  "background_color": "#0F0F17",
+  "theme_color": "#7C3AED",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "screenshots": [],
+  "categories": ["social", "entertainment", "productivity", "finance"],
+  "lang": "fr",
+  "shortcuts": [
+    { "name": "Feed", "url": "/feed", "description": "Fil d'actualité" },
+    { "name": "Messages", "url": "/messages", "description": "Messages privés" },
+    { "name": "Golden Nugget", "url": "/golden-nugget", "description": "Événement hebdomadaire" },
+    { "name": "Reels", "url": "/reels", "description": "Vidéos courtes" }
+  ]
+}

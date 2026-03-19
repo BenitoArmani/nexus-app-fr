@@ -1,0 +1,15 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "next build",
+  "devCommand": "next dev --turbopack",
+  "installCommand": "npm install",
+  "regions": ["cdg1"],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "index, follow" }
+      ]
+    }
+  ]
+}

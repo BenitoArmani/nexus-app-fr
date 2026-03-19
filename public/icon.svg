@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- App background — dark -->
+  <rect width="512" height="512" rx="110" fill="#0a0a12"/>
+  <!-- Hexagon — visible violet fill -->
+  <polygon points="256,32 464,144 464,368 256,480 48,368 48,144"
+    fill="#2d1060" stroke="#8b5cf6" stroke-width="22" stroke-linejoin="round"/>
+  <!-- N letter — white bold -->
+  <path d="M168,348 L168,164 L344,348 L344,164"
+    stroke="white" stroke-width="40" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Top dot — violet -->
+  <circle cx="256" cy="32" r="22" fill="#8b5cf6"/>
+  <!-- Bottom dot — cyan -->
+  <circle cx="256" cy="480" r="22" fill="#06b6d4"/>
+</svg>
