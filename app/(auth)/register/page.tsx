@@ -100,7 +100,18 @@ export default function RegisterPage() {
         </div>
 
         <div className="bg-surface-2 border border-white/5 rounded-2xl p-6 space-y-4">
-          <button onClick={signInWithGoogle} className="w-full flex items-center justify-center gap-2 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-sm text-text-primary font-medium transition-colors">
+          <button
+            onClick={async () => {
+              try {
+                await signInWithGoogle()
+              } catch (err: unknown) {
+                const msg = err instanceof Error ? err.message : String(err)
+                console.error('[NEXUS] signInWithGoogle (register) failed:', msg)
+                toast.error(`Google: ${msg}`)
+              }
+            }}
+            className="w-full flex items-center justify-center gap-2 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-sm text-text-primary font-medium transition-colors"
+          >
             <Chrome size={16} /> Continuer avec Google
           </button>
 
@@ -185,6 +196,11 @@ export default function RegisterPage() {
               </AnimatePresence>
             </div>
 
+            {/* Règles username */}
+            {usernameStatus === 'idle' && form.username.length === 0 && (
+              <p className="text-[11px] text-zinc-500 -mt-1">3 à 20 caractères · lettres, chiffres et _ uniquement</p>
+            )}
+
             {/* Email */}
             <div>
               <label className="text-xs font-medium text-text-muted block mb-1.5">Email</label>
@@ -210,9 +226,11 @@ export default function RegisterPage() {
                   value={form.password}
                   onChange={handleChange} required
                   placeholder="••••••••"
+                  minLength={6}
                   className="w-full bg-surface-3 border border-white/5 rounded-xl pl-9 pr-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-violet-500/50"
                 />
               </div>
+              <p className="text-[11px] text-zinc-500 mt-1">Minimum 6 caractères</p>
             </div>
 
             <p className="text-[11px] text-text-muted">
