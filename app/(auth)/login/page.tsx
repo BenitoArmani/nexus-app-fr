@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { Mail, Lock, Chrome, Eye, EyeOff, ShieldAlert, Loader2 } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import { NexusHexIcon } from '@/components/ui/NexusLogo'
@@ -19,14 +19,13 @@ export default function LoginPage() {
   const [lockoutUntil, setLockoutUntil] = useState<number | null>(null)
   const { signIn, signInWithGoogle, googleLoading } = useAuth()
   const router = useRouter()
-  const searchParams = useSearchParams()
 
   useEffect(() => {
-    const err = searchParams.get('error')
+    const err = new URLSearchParams(window.location.search).get('error')
     if (err === 'auth_failed') toast.error('Échec de la connexion Google. Réessayez.')
     else if (err === 'timeout') toast.error('La connexion a expiré. Réessayez.')
     else if (err) toast.error(decodeURIComponent(err))
-  }, [searchParams])
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
