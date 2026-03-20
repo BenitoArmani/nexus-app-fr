@@ -8,6 +8,7 @@ import Button from '@/components/ui/Button'
 import { NexusHexIcon } from '@/components/ui/NexusLogo'
 import { useAuth } from '@/hooks/useAuth'
 import { checkLoginAttempts, recordFailedLogin, recordSuccessfulLogin } from '@/lib/security'
+import { supabase } from '@/lib/supabase'
 import toast from 'react-hot-toast'
 
 export default function LoginPage() {
@@ -82,7 +83,15 @@ export default function LoginPage() {
         <div className="bg-surface-2 border border-white/5 rounded-2xl p-6 space-y-4">
           {/* Google */}
           <button
-            onClick={signInWithGoogle}
+            onClick={async () => {
+              try {
+                await signInWithGoogle()
+              } catch (err: unknown) {
+                const msg = err instanceof Error ? err.message : String(err)
+                console.error('[NEXUS] signInWithGoogle failed:', msg)
+                toast.error(`Google: ${msg}`)
+              }
+            }}
             className="w-full flex items-center justify-center gap-2 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-sm text-text-primary font-medium transition-colors"
           >
             <Chrome size={16} /> Continuer avec Google
@@ -119,7 +128,20 @@ export default function LoginPage() {
                 <label className="text-xs font-medium text-text-muted">Mot de passe</label>
                 <button
                   type="button"
-                  onClick={() => toast('Réinitialisation : vérifiez votre email.', { icon: '📧', style: { background: '#1a0a2e', color: '#e2e8f0', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px' } })}
+                  onClick={async () => {
+                    if (!email) {
+                      toast.error('Entrez votre email d\'abord')
+                      return
+                    }
+                    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+                      redirectTo: 'https://nexussociable.fr/auth/callback',
+                    })
+                    if (resetError) {
+                      toast.error(resetError.message)
+                    } else {
+                      toast('Email de réinitialisation envoyé ! Vérifiez votre boîte.', { icon: '📧', style: { background: '#1a0a2e', color: '#e2e8f0', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px' } })
+                    }
+                  }}
                   className="text-xs text-violet-400 hover:text-violet-300 transition-colors"
                 >
                   Mot de passe oublié ?

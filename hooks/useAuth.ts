@@ -55,8 +55,28 @@ export function useAuth() {
         created_at: data.created_at,
       })
     } else {
-      // Profile not found yet (just registered), use auth data
-      setUser(MOCK_CURRENT_USER)
+      // Profile not found yet (just registered or RLS delay) — build from auth session
+      // NEVER fall back to MOCK_CURRENT_USER for an authenticated user
+      const { data: { user: authUser } } = await supabase.auth.getUser()
+      if (authUser) {
+        const meta = authUser.user_metadata ?? {}
+        const fallbackName = meta.username ?? meta.full_name ?? authUser.email?.split('@')[0] ?? 'utilisateur'
+        setUser({
+          id: authUser.id,
+          username: fallbackName,
+          full_name: meta.full_name ?? fallbackName,
+          avatar_url: meta.avatar_url ?? null,
+          bio: null,
+          is_verified: false,
+          is_creator: false,
+          monthly_goal: 500,
+          followers_count: 0,
+          following_count: 0,
+          created_at: authUser.created_at,
+        })
+      } else {
+        setUser(MOCK_CURRENT_USER)
+      }
     }
     setLoading(false)
   }
@@ -67,10 +87,16 @@ export function useAuth() {
   }
 
   async function signUp(email: string, password: string, username: string) {
-    const { data, error } = await supabase.auth.signUp({ email, password })
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { username, full_name: username } },
+    })
     if (error) throw error
-    if (data.user) {
-      await supabase.from('users').insert({
+    if (data.user && data.session) {
+      // Only upsert if we have an active session (autoconfirm ON)
+      // Without session, the user must confirm email first → upsert would fail RLS
+      await supabase.from('users').upsert({
         id: data.user.id,
         username,
         full_name: username,
@@ -79,10 +105,12 @@ export function useAuth() {
         monthly_goal: 500,
         followers_count: 0,
         following_count: 0,
-      })
-      // Init streak & level (ignore errors if already exists)
-      supabase.from('streaks').insert({ user_id: data.user.id }).then(() => {})
-      supabase.from('user_levels').insert({ user_id: data.user.id, level: 1, total_glyphs_earned: 0 }).then(() => {})
+      }, { onConflict: 'id' })
+      supabase.from('streaks').upsert({ user_id: data.user.id }, { onConflict: 'user_id' }).then(() => {})
+      supabase.from('user_levels').upsert({ user_id: data.user.id, level: 1, total_glyphs_earned: 0 }, { onConflict: 'user_id' }).then(() => {})
+    } else if (data.user && !data.session) {
+      // Email confirmation required — throw so register page can show the right message
+      throw new Error('Un email de confirmation a été envoyé. Vérifiez votre boîte mail.')
     }
   }
 
@@ -92,10 +120,14 @@ export function useAuth() {
   }
 
   async function signInWithGoogle() {
-    await supabase.auth.signInWithOAuth({
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/feed` },
+      options: { redirectTo: 'https://nexussociable.fr/auth/callback' },
     })
+    if (error) {
+      console.error('[NEXUS] Google OAuth error:', error)
+      throw error
+    }
   }
 
   async function updateProfile(updates: Partial<Pick<User, 'full_name' | 'bio' | 'avatar_url'>>) {
