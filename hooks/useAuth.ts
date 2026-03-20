@@ -7,6 +7,7 @@ import { MOCK_CURRENT_USER } from '@/lib/mock-data'
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const [googleLoading, setGoogleLoading] = useState(false)
 
   useEffect(() => {
     // Get initial session
@@ -23,6 +24,22 @@ export function useAuth() {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
+        // For first-time OAuth users, ensure a profile row exists
+        if (event === 'SIGNED_IN') {
+          const meta = session.user.user_metadata ?? {}
+          const fallbackName = meta.full_name ?? meta.name ?? session.user.email?.split('@')[0] ?? 'utilisateur'
+          await supabase.from('users').upsert({
+            id: session.user.id,
+            username: (meta.username ?? fallbackName).toLowerCase().replace(/[^a-z0-9_]/g, '_').slice(0, 20),
+            full_name: fallbackName,
+            avatar_url: meta.avatar_url ?? meta.picture ?? null,
+            is_verified: false,
+            is_creator: false,
+            monthly_goal: 500,
+            followers_count: 0,
+            following_count: 0,
+          }, { onConflict: 'id', ignoreDuplicates: true })
+        }
         await fetchProfile(session.user.id)
       } else {
         setUser(MOCK_CURRENT_USER)
@@ -120,14 +137,18 @@ export function useAuth() {
   }
 
   async function signInWithGoogle() {
+    if (googleLoading) return
+    setGoogleLoading(true)
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: 'https://nexussociable.fr/auth/callback' },
     })
     if (error) {
+      setGoogleLoading(false)
       console.error('[NEXUS] Google OAuth error:', error)
       throw error
     }
+    // Pas de reset sur succès — le browser navigue vers Google
   }
 
   async function updateProfile(updates: Partial<Pick<User, 'full_name' | 'bio' | 'avatar_url'>>) {
@@ -138,5 +159,5 @@ export function useAuth() {
 
   const isRealUser = user?.id !== MOCK_CURRENT_USER.id
 
-  return { user, loading, isRealUser, signIn, signUp, signOut, signInWithGoogle, updateProfile }
+  return { user, loading, isRealUser, googleLoading, signIn, signUp, signOut, signInWithGoogle, updateProfile }
 }

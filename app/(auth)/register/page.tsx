@@ -17,7 +17,7 @@ export default function RegisterPage() {
   const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>('idle')
   const [usernameMessage, setUsernameMessage] = useState('')
   const [suggestions, setSuggestions] = useState<string[]>([])
-  const { signUp, signInWithGoogle } = useAuth()
+  const { signUp, signInWithGoogle, googleLoading } = useAuth()
   const router = useRouter()
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -110,9 +110,11 @@ export default function RegisterPage() {
                 toast.error(`Google: ${msg}`)
               }
             }}
-            className="w-full flex items-center justify-center gap-2 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-sm text-text-primary font-medium transition-colors"
+            disabled={googleLoading}
+            className="w-full flex items-center justify-center gap-2 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-sm text-text-primary font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Chrome size={16} /> Continuer avec Google
+            {googleLoading ? <Loader2 size={16} className="animate-spin" /> : <Chrome size={16} />}
+            {googleLoading ? 'Redirection...' : 'Continuer avec Google'}
           </button>
 
           <div className="flex items-center gap-3">
