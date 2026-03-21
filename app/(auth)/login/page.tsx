@@ -29,6 +29,7 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log('[NEXUS] Login started', { email })
 
     // Check if account is locked
     const attemptCheck = checkLoginAttempts(email)
@@ -42,9 +43,13 @@ export default function LoginPage() {
     setLoading(true)
     try {
       await signIn(email, password)
+      const { data: { session } } = await supabase.auth.getSession()
+      console.log('[NEXUS] Login success — session exists:', !!session, '— user id:', session?.user?.id)
       recordSuccessfulLogin(email)
+      console.log('[NEXUS] Navigating to /feed')
       router.push('/feed')
-    } catch {
+    } catch (err) {
+      console.error('[NEXUS] Login failed:', err)
       const result = recordFailedLogin(email)
       if (!result.allowed) {
         setLockoutUntil(result.lockedUntil)
