@@ -50,6 +50,7 @@ export default function PostCard({ post, onLike }: PostCardProps) {
     if (!post.liked_by_me) {
       triggerGlyphGain(1, 'Like', e.clientX, e.clientY)
       play('like')
+      if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(12)
     }
     onLike(post.id)
   }
@@ -187,11 +188,11 @@ export default function PostCard({ post, onLike }: PostCardProps) {
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-1 px-2 py-1 border-t border-white/5">
+        <div className="flex items-center gap-1 px-2 py-2 border-t border-white/5">
           <motion.button
             whileTap={{ scale: 0.85 }}
             onClick={handleLike}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-sm font-medium transition-colors ${post.liked_by_me ? 'text-rose-400' : 'text-text-muted hover:text-rose-400 hover:bg-rose-500/5'}`}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl text-sm font-medium transition-colors touch-active ${post.liked_by_me ? 'text-rose-400' : 'text-text-muted hover:text-rose-400 hover:bg-rose-500/5'}`}
           >
             <AnimatePresence mode="wait">
               <motion.div key={post.liked_by_me ? 'liked' : 'not-liked'} initial={{ scale: 0.6 }} animate={{ scale: 1 }} exit={{ scale: 0.6 }}>
@@ -203,14 +204,14 @@ export default function PostCard({ post, onLike }: PostCardProps) {
 
           <button
             onClick={() => setShowComments(true)}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-sm font-medium text-text-muted hover:text-cyan-400 hover:bg-cyan-500/5 transition-colors"
+            className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl text-sm font-medium text-text-muted hover:text-cyan-400 hover:bg-cyan-500/5 transition-colors touch-active"
           >
             <MessageCircle size={18} /> Commenter
           </button>
 
           <button
             onClick={() => { navigator.clipboard.writeText(`https://nexussociable.fr/post/${post.id}`).catch(() => {}); toast.success('Lien copié !', { style: { background: '#1a0a2e', color: '#c084fc', border: '1px solid rgba(139,92,246,0.3)', borderRadius: '12px' } }) }}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-sm font-medium text-text-muted hover:text-violet-400 hover:bg-violet-500/5 transition-colors"
+            className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl text-sm font-medium text-text-muted hover:text-violet-400 hover:bg-violet-500/5 transition-colors touch-active"
           >
             <Share2 size={18} /> Partager
           </button>

@@ -79,7 +79,7 @@ export default function CommentsSheet({ postId, open, onClose, userId, userName,
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="fixed bottom-0 left-0 right-0 z-50 bg-zinc-950 border-t border-white/8 rounded-t-3xl"
+            className="fixed bottom-0 left-0 right-0 z-50 bg-zinc-950 border-t border-white/8 rounded-t-3xl bottom-sheet"
             style={{ maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}
           >
             {/* Handle */}

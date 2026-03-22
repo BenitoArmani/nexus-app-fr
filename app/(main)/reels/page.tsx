@@ -95,8 +95,8 @@ export default function ReelsPage() {
           ))}
         </div>
 
-        {/* Navigation buttons */}
-        <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-10">
+        {/* Navigation buttons — desktop uniquement */}
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 flex-col gap-3 z-10 hidden md:flex">
           <button
             onClick={prev}
             disabled={slotIndex === 0}

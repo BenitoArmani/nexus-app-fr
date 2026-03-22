@@ -55,3 +55,74 @@ input, textarea, select {
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
+
+/* ── Scrollbar hide global ─────────────────────────── */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ── Tap highlight suppression mobile ─────────────────── */
+* { -webkit-tap-highlight-color: transparent; }
+
+/* ── Touch active feedback ─────────────────────────── */
+.touch-active { transition: transform 0.1s ease, opacity 0.1s ease; }
+.touch-active:active { transform: scale(0.96); opacity: 0.85; }
+
+/* ── Glassmorphism card ─────────────────────────── */
+.glass-card {
+  background: rgba(23, 23, 31, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.07);
+}
+
+/* ── Gradient text ─────────────────────────── */
+.gradient-text {
+  background: linear-gradient(135deg, #a78bfa, #22d3ee);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Glow effects ─────────────────────────── */
+.glow-violet { box-shadow: 0 0 20px rgba(124, 58, 237, 0.15), 0 0 60px rgba(124, 58, 237, 0.05); }
+.glow-cyan   { box-shadow: 0 0 20px rgba(6, 182, 212, 0.15),  0 0 60px rgba(6, 182, 212, 0.05);  }
+.glow-emerald{ box-shadow: 0 0 20px rgba(16, 185, 129, 0.15), 0 0 60px rgba(16, 185, 129, 0.05); }
+
+/* ── Card elevated ─────────────────────────── */
+.card-elevated {
+  background: #17171F;
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.04) inset;
+}
+
+/* ── Bottom sheet ─────────────────────────── */
+.bottom-sheet {
+  box-shadow: 0 -8px 40px rgba(0,0,0,0.6), 0 -1px 0 rgba(255,255,255,0.06);
+}
+
+/* ── Line clamp utilities ─────────────────────────── */
+.line-clamp-1 { overflow:hidden; display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; }
+.line-clamp-2 { overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+.line-clamp-3 { overflow:hidden; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; }
+
+/* ── Shimmer skeleton ─────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, #1E1E28 25%, #252530 50%, #1E1E28 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* ── Pulse glow animation ─────────────────────────── */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 8px rgba(124, 58, 237, 0.3); }
+  50%       { box-shadow: 0 0 20px rgba(124, 58, 237, 0.6); }
+}
+.animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+
+/* ── Safe area top ─────────────────────────── */
+.pt-safe { padding-top: env(safe-area-inset-top, 0px); }
+.mt-safe { margin-top: env(safe-area-inset-top, 0px); }
