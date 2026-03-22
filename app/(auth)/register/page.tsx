@@ -2,11 +2,12 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Mail, Lock, User, Check, X, Loader2, Eye, EyeOff } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import { NexusHexIcon } from '@/components/ui/NexusLogo'
 import { useAuth } from '@/hooks/useAuth'
+import { supabase } from '@/lib/supabase'
 import toast from 'react-hot-toast'
 
 type UsernameStatus = 'idle' | 'checking' | 'available' | 'taken' | 'invalid'
@@ -28,6 +29,8 @@ export default function RegisterPage() {
   const [suggestions, setSuggestions] = useState<string[]>([])
   const { signUp } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const refCode = searchParams.get('ref')
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const passwordValid = PASSWORD_RULES.every(r => r.test(form.password))
@@ -86,6 +89,26 @@ export default function RegisterPage() {
     try {
       await signUp(form.email, form.password, form.username)
       toast.success('Compte créé ! Bienvenue sur NEXUS 🎉')
+
+      // If a referral code was passed in the URL, claim it server-side
+      if (refCode) {
+        try {
+          const { data: { session } } = await supabase.auth.getSession()
+          if (session?.access_token) {
+            await fetch('/api/referral/claim', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${session.access_token}`,
+              },
+              body: JSON.stringify({ code: refCode }),
+            })
+          }
+        } catch {
+          // Non-blocking — parrainage failure should not block onboarding
+        }
+      }
+
       router.push('/onboarding')
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Erreur lors de l\'inscription'

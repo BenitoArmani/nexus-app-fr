@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import {
   Home, Play, MessageCircle, Hash, TrendingUp, Settings, LogOut, PlusCircle,
   Coins, Gamepad2, BookOpen, BarChart2, Award, Calendar, HelpCircle, Users,
-  Shield, Tv2, AlarmClock, Trophy, Sparkles, Map, Star, Compass, ChevronDown,
+  Shield, Tv2, AlarmClock, Trophy, Sparkles, Map, Star, Compass, ChevronDown, Gift,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Avatar from '@/components/ui/Avatar'
@@ -57,6 +57,7 @@ const NAV_GROUPS = [
       { href: '/loyalty',    icon: Award,     label: 'Fidélité 🏅'        },
       { href: '/roadmap',    icon: Map,       label: 'Roadmap 🗺️'         },
       { href: '/invite',     icon: Users,     label: 'Inviter 🎁'         },
+      { href: '/referral',   icon: Gift,      label: 'Parrainage 🤝'      },
       { href: '/coins',      icon: Coins,     label: 'Acheter Coins'      },
     ],
   },
