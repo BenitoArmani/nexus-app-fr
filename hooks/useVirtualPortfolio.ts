@@ -94,6 +94,8 @@ export function useVirtualPortfolio() {
 
   const updatePrices = useCallback((prices: Record<string, number>) => {
     setState(prev => {
+      const hasChange = prev.holdings.some(h => prices[h.symbol] !== undefined && prices[h.symbol] !== h.currentPrice)
+      if (!hasChange) return prev
       const updated = {
         ...prev,
         holdings: prev.holdings.map(h => ({

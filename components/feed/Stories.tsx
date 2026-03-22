@@ -1,38 +1,72 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Plus, X, ChevronLeft, ChevronRight, Flag } from 'lucide-react'
 import Image from 'next/image'
 import Avatar from '@/components/ui/Avatar'
-import { MOCK_STORIES } from '@/lib/mock-data'
+import StoryCreateModal from './StoryCreateModal'
 import { formatNumber } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
 import type { Story } from '@/types'
 
-const STORY_DURATION = 5000 // ms
+const STORY_DURATION = 5000
 
 export default function Stories() {
   const { user } = useAuth()
+  const [stories, setStories] = useState<Story[]>([])
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
   const [progress, setProgress] = useState(0)
+  const [showCreate, setShowCreate] = useState(false)
+  const [reported, setReported] = useState<string | null>(null)
 
-  const activeStory = activeIndex !== null ? MOCK_STORIES[activeIndex] : null
+  async function handleReport(storyId: string) {
+    if (reported === storyId) return
+    setReported(storyId)
+    try {
+      await fetch('/api/stories/report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ story_id: storyId }),
+      })
+    } catch { /* silencieux */ }
+    setTimeout(() => setActiveIndex(null), 800)
+  }
+
+  async function fetchStories() {
+    try {
+      const res = await fetch('/api/stories')
+      if (!res.ok) return
+      const data: Story[] = await res.json()
+      setStories(data)
+    } catch { /* silencieux */ }
+  }
+
+  useEffect(() => { fetchStories() }, [])
+
+  const activeStory = activeIndex !== null ? stories[activeIndex] : null
 
   const goNext = useCallback(() => {
     if (activeIndex === null) return
-    if (activeIndex < MOCK_STORIES.length - 1) {
+    if (activeIndex < stories.length - 1) {
       setActiveIndex(activeIndex + 1)
       setProgress(0)
     } else {
       setActiveIndex(null)
     }
-  }, [activeIndex])
+  }, [activeIndex, stories.length])
 
   const goPrev = useCallback(() => {
     if (activeIndex === null || activeIndex === 0) return
     setActiveIndex(activeIndex - 1)
     setProgress(0)
   }, [activeIndex])
+
+  function openStory(i: number) {
+    setActiveIndex(i)
+    setProgress(0)
+    // Incrémenter les vues
+    fetch(`/api/stories/${stories[i].id}/view`, { method: 'PATCH' }).catch(() => {})
+  }
 
   useEffect(() => {
     if (activeIndex === null) return
@@ -50,7 +84,11 @@ export default function Stories() {
     <>
       <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-none">
         {/* Add story */}
-        <div className="flex-shrink-0 flex flex-col items-center gap-1.5 cursor-pointer group">
+        <motion.div
+          whileTap={{ scale: 0.92 }}
+          className="flex-shrink-0 flex flex-col items-center gap-1.5 cursor-pointer group"
+          onClick={() => setShowCreate(true)}
+        >
           <div className="relative w-16 h-16">
             <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-white/10">
               <Avatar src={user?.avatar_url ?? null} name={user?.full_name ?? 'Moi'} size="lg" />
@@ -60,24 +98,23 @@ export default function Stories() {
             </div>
           </div>
           <span className="text-[11px] text-text-muted font-medium">Ma story</span>
-        </div>
+        </motion.div>
 
         {/* Stories */}
-        {MOCK_STORIES.map((story, i) => (
+        {stories.map((story, i) => (
           <motion.div
             key={story.id}
             whileTap={{ scale: 0.92 }}
             className="flex-shrink-0 flex flex-col items-center gap-1.5 cursor-pointer"
-            onClick={() => { setActiveIndex(i); setProgress(0) }}
+            onClick={() => openStory(i)}
           >
-            {/* Ring gradient */}
             <div className="w-16 h-16 rounded-full p-[2.5px] bg-gradient-to-br from-violet-500 via-fuchsia-500 to-cyan-400">
               <div className="w-full h-full rounded-full overflow-hidden border-2 border-bg-primary">
                 <Avatar src={story.user?.avatar_url} name={story.user?.full_name || ''} size="lg" className="w-full h-full" />
               </div>
             </div>
             <span className="text-[11px] text-text-muted font-medium max-w-[64px] truncate text-center">
-              {story.user?.username?.split('_')[0]}
+              {story.user?.username?.split('_')[0] ?? 'Story'}
             </span>
           </motion.div>
         ))}
@@ -90,25 +127,31 @@ export default function Stories() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black"
+            className="fixed inset-0 z-50 bg-black flex items-center justify-center"
           >
-            {/* Story card */}
             <motion.div
               key={activeIndex}
               initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.96 }}
               transition={{ duration: 0.15 }}
-              className="relative w-full max-w-[400px] h-full max-h-[85vh] rounded-2xl overflow-hidden"
+              className="relative w-full h-full sm:max-w-[400px] sm:h-[85vh] sm:rounded-2xl overflow-hidden"
             >
-              <Image src={activeStory.media_url} alt="Story" fill className="object-cover" unoptimized />
+              {activeStory.media_type === 'video' ? (
+                <video
+                  src={activeStory.media_url}
+                  className="absolute inset-0 w-full h-full object-cover"
+                  autoPlay muted loop playsInline
+                />
+              ) : (
+                <Image src={activeStory.media_url} alt="Story" fill className="object-cover" unoptimized />
+              )}
 
-              {/* Gradient overlays */}
               <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/40 pointer-events-none" />
 
               {/* Progress bars */}
               <div className="absolute top-3 left-3 right-3 flex gap-1 z-10">
-                {MOCK_STORIES.map((_, i) => (
+                {stories.map((_, i) => (
                   <div key={i} className="flex-1 h-0.5 bg-white/30 rounded-full overflow-hidden">
                     <motion.div
                       className="h-full bg-white rounded-full"
@@ -130,25 +173,35 @@ export default function Stories() {
                 </div>
               </div>
 
-              {/* Close */}
-              <button
-                onClick={() => setActiveIndex(null)}
-                className="absolute top-8 right-4 w-8 h-8 bg-black/40 backdrop-blur-sm rounded-full flex items-center justify-center text-white z-10"
-              >
-                <X size={16} />
-              </button>
+              {/* Close + Report */}
+              <div className="absolute top-8 right-4 flex flex-col gap-2 z-10">
+                <button
+                  onClick={() => setActiveIndex(null)}
+                  className="w-8 h-8 bg-black/40 backdrop-blur-sm rounded-full flex items-center justify-center text-white"
+                >
+                  <X size={16} />
+                </button>
+                {activeStory.user_id !== user?.id && (
+                  <button
+                    onClick={() => handleReport(activeStory.id)}
+                    className={`w-8 h-8 backdrop-blur-sm rounded-full flex items-center justify-center transition-colors ${reported === activeStory.id ? 'bg-red-500 text-white' : 'bg-black/40 text-white/70 hover:text-red-400'}`}
+                    title="Signaler"
+                  >
+                    <Flag size={14} />
+                  </button>
+                )}
+              </div>
 
               {/* Tap zones */}
               <button onClick={goPrev} className="absolute left-0 top-0 w-1/3 h-full z-10" />
               <button onClick={goNext} className="absolute right-0 top-0 w-1/3 h-full z-10" />
 
-              {/* Nav arrows (desktop hint) */}
               {activeIndex > 0 && (
                 <button onClick={goPrev} className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/40 backdrop-blur-sm rounded-full hidden sm:flex items-center justify-center text-white z-20">
                   <ChevronLeft size={16} />
                 </button>
               )}
-              {activeIndex < MOCK_STORIES.length - 1 && (
+              {activeIndex < stories.length - 1 && (
                 <button onClick={goNext} className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/40 backdrop-blur-sm rounded-full hidden sm:flex items-center justify-center text-white z-20">
                   <ChevronRight size={16} />
                 </button>
@@ -157,6 +210,14 @@ export default function Stories() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Create modal */}
+      {showCreate && (
+        <StoryCreateModal
+          onClose={() => setShowCreate(false)}
+          onCreated={() => { fetchStories() }}
+        />
+      )}
     </>
   )
 }

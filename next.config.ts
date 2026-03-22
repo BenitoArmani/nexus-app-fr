@@ -39,7 +39,7 @@ const nextConfig: NextConfig = {
               "font-src 'self' data: https://fonts.gstatic.com",
               "img-src 'self' data: blob: https: http:",
               "media-src 'self' https: blob:",
-              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.giphy.com https://media0.giphy.com https://media1.giphy.com https://media2.giphy.com https://media3.giphy.com https://media4.giphy.com https://api.cloudinary.com https://api.stripe.com https://api.anthropic.com https://*.googlesyndication.com https://adservice.google.com",
+              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.giphy.com https://media0.giphy.com https://media1.giphy.com https://media2.giphy.com https://media3.giphy.com https://media4.giphy.com https://api.cloudinary.com https://api.stripe.com https://api.anthropic.com https://*.googlesyndication.com https://adservice.google.com https://ipapi.co https://api.coingecko.com",
               "frame-src 'self' https://js.stripe.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com",
             ].join('; '),
           },

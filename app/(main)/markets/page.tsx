@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { TrendingUp, TrendingDown, Wallet, RefreshCw, Bell, BellOff, X, Plus, ChevronRight, Database, Wifi, Search, Star, StarOff, Loader2 } from 'lucide-react'
 import { useMarkets } from '@/hooks/useMarkets'
@@ -121,13 +121,13 @@ export default function MarketsPage() {
   const timeStr = lastUpdated.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
 
   // Crypto: BTC + ETH always first
-  const sortedCrypto = [...cryptoQuotes].sort((a, b) => {
+  const sortedCrypto = useMemo(() => [...cryptoQuotes].sort((a, b) => {
     if (a.symbol === 'BTC') return -1
     if (b.symbol === 'BTC') return 1
     if (a.symbol === 'ETH') return -1
     if (b.symbol === 'ETH') return 1
     return 0
-  })
+  }), [cryptoQuotes])
 
   // Update virtual portfolio prices when quotes change
   useEffect(() => {

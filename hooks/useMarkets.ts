@@ -19,7 +19,7 @@ export function useMarkets() {
         const changePercent = (change / (q.price - q.change)) * 100
         return { ...q, price: parseFloat(newPrice.toFixed(2)), change: parseFloat(change.toFixed(2)), changePercent: parseFloat(changePercent.toFixed(2)) }
       }))
-    }, 5000)
+    }, 60000)
     return () => clearInterval(interval)
   }, [])
 

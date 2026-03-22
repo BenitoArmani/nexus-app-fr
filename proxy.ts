@@ -38,7 +38,7 @@ const SECURITY_HEADERS: Record<string, string> = {
     "font-src 'self' data:",
     "img-src 'self' data: blob: https: http:",
     "media-src 'self' https: blob:",
-    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.giphy.com https://api.cloudinary.com https://api.stripe.com https://api.anthropic.com https://*.googlesyndication.com https://adservice.google.com",
+    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.giphy.com https://api.cloudinary.com https://api.stripe.com https://api.anthropic.com https://*.googlesyndication.com https://adservice.google.com https://ipapi.co https://api.coingecko.com",
     "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com",
     "object-src 'none'",
     "base-uri 'self'",

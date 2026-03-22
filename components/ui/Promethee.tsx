@@ -14,134 +14,74 @@ const SUGGESTIONS = [
   { icon: '📋', label: 'Résumer' },
 ]
 
-/* ─── Flame spirit character ─────────────────────────── */
+/* ─── 2D Flame SVG ─────────────────────────── */
 function FlameSpirit({ clicked, scale = 1 }: { clicked: boolean; scale?: number }) {
-  const W = 52 * scale
-  const H = 70 * scale
+  const W = 44 * scale
+  const H = 60 * scale
+  const uid = `f${Math.round(scale * 100)}`
 
   return (
     <motion.div
-      style={{ width: W, height: H, position: 'relative' }}
-      /* idle sway */
-      animate={{ rotate: [-4, 3, -5, 4, -3, 5, -4], y: [0, -2 * scale, 0, -3 * scale, 0] }}
-      transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
+      style={{ width: W, height: H }}
+      animate={{ y: [0, -3 * scale, 0, -2 * scale, 0], rotate: [-2, 2, -3, 1, -2] }}
+      transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
     >
-      {/* click stretch */}
       <motion.div
-        style={{ width: '100%', height: '100%', position: 'relative', transformOrigin: 'bottom center' }}
-        animate={clicked ? { scaleX: 0.55, scaleY: 1.55 } : { scaleX: 1, scaleY: 1 }}
-        transition={clicked ? { duration: 0.12, ease: 'easeOut' } : { duration: 0.35, ease: [0.34, 1.56, 0.64, 1] }}
+        style={{ width: '100%', height: '100%', transformOrigin: 'bottom center' }}
+        animate={clicked ? { scaleX: 0.6, scaleY: 1.5 } : { scaleX: 1, scaleY: 1 }}
+        transition={clicked
+          ? { duration: 0.1, ease: 'easeOut' }
+          : { duration: 0.4, ease: [0.34, 1.56, 0.64, 1] }}
       >
+        <svg width="100%" height="100%" viewBox="0 0 44 60" style={{ overflow: 'visible' }}>
+          <defs>
+            {/* Outer glow blur */}
+            <filter id={`glow-${uid}`} x="-60%" y="-60%" width="220%" height="220%">
+              <feGaussianBlur stdDeviation="3" result="blur" />
+              <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+            </filter>
+            {/* Outer flame: light cyan at tip → mid-blue at base */}
+            <linearGradient id={`outer-${uid}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%"   stopColor="#bae6fd" />
+              <stop offset="45%"  stopColor="#38bdf8" />
+              <stop offset="100%" stopColor="#0ea5e9" />
+            </linearGradient>
+            {/* Inner core: darker blue */}
+            <linearGradient id={`inner-${uid}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%"   stopColor="#0369a1" />
+              <stop offset="100%" stopColor="#075985" />
+            </linearGradient>
+          </defs>
 
-        {/* ── outer glow halo ── */}
-        <div style={{
-          position: 'absolute', inset: 0,
-          background: 'radial-gradient(ellipse at 50% 60%, rgba(56,189,248,0.35) 0%, rgba(14,165,233,0.15) 55%, transparent 80%)',
-          borderRadius: '45% 45% 50% 50% / 50% 50% 50% 50%',
-          transform: `scale(${1.55 * scale})`,
-          filter: `blur(${7 * scale}px)`,
-        }} />
+          {/* Outer glow halo */}
+          <path
+            d="M22 3 C19 9,8 17,7 27 C5 38,9 48,15 53 C17 55,20 57,22 57 C24 57,27 55,29 53 C35 48,39 38,37 27 C36 17,25 9,22 3Z"
+            fill="rgba(56,189,248,0.22)"
+            style={{ transform: 'scale(1.28)', transformOrigin: '22px 57px' }}
+            filter={`url(#glow-${uid})`}
+          />
 
-        {/* ── main body ── */}
-        <motion.div
-          style={{
-            position: 'absolute',
-            inset: `${10 * scale}px ${5 * scale}px ${2 * scale}px ${5 * scale}px`,
-            background: 'radial-gradient(ellipse at 50% 42%, #0ea5e9 0%, #0284c7 45%, #075985 100%)',
-            borderRadius: '44% 44% 50% 50% / 54% 54% 46% 46%',
-            border: `${1.5 * scale}px solid rgba(56,189,248,0.65)`,
-            boxShadow: `0 0 ${12 * scale}px rgba(56,189,248,0.25), inset 0 ${scale}px 0 rgba(186,230,253,0.15)`,
-          }}
-          /* body flicker — stepped inspired by the bat */
-          animate={{ scaleX: [1, 0.94, 1.04, 0.96, 1.02, 1], scaleY: [1, 1.05, 0.96, 1.03, 0.98, 1] }}
-          transition={{ duration: 0.55, repeat: Infinity, ease: 'linear' }}
-        />
+          {/* Main flame — outer silhouette (lighter cyan) */}
+          <motion.path
+            d="M22 3 C19 9,8 17,7 27 C5 38,9 48,15 53 C17 55,20 57,22 57 C24 57,27 55,29 53 C35 48,39 38,37 27 C36 17,25 9,22 3Z"
+            fill={`url(#outer-${uid})`}
+            animate={{ scaleX: [1, 0.96, 1.04, 0.97, 1] }}
+            transition={{ duration: 0.8, repeat: Infinity, ease: 'easeInOut' }}
+            style={{ transformOrigin: '22px 57px' }}
+          />
 
-        {/* ── inner bright core ── */}
-        <div style={{
-          position: 'absolute',
-          left: '22%', top: '30%', width: '56%', height: '38%',
-          background: 'radial-gradient(ellipse, rgba(186,230,253,0.45) 0%, transparent 70%)',
-          borderRadius: '50%',
-          filter: `blur(${4 * scale}px)`,
-        }} />
+          {/* Inner core — darker, narrower, slightly raised */}
+          <motion.path
+            d="M22 15 C20 20,14 27,13 35 C12 42,15 49,19 52 C20 53,21 54,22 54 C23 54,24 53,25 52 C29 49,32 42,31 35 C30 27,24 20,22 15Z"
+            fill={`url(#inner-${uid})`}
+            animate={{ scaleX: [1, 0.91, 1.07, 0.94, 1] }}
+            transition={{ duration: 0.6, repeat: Infinity, ease: 'easeInOut', delay: 0.12 }}
+            style={{ transformOrigin: '22px 54px' }}
+          />
 
-        {/* ── flame tip center (tallest) ── */}
-        <motion.div
-          style={{
-            position: 'absolute',
-            top: -20 * scale, left: '50%', transform: 'translateX(-50%)',
-            width: 14 * scale, height: 30 * scale,
-            background: 'linear-gradient(to top, #38bdf8 0%, #7dd3fc 55%, transparent 100%)',
-            borderRadius: '50% 50% 22% 22% / 80% 80% 20% 20%',
-            filter: `blur(${1.5 * scale}px)`,
-          }}
-          animate={{ scaleX: [1, 0.65, 1.25, 0.75, 1.15, 1], scaleY: [1, 1.25, 0.88, 1.3, 0.9, 1], x: [-scale, scale, -2 * scale, 2 * scale, 0] }}
-          transition={{ duration: 0.45, repeat: Infinity, ease: 'linear' }}
-        />
-
-        {/* ── flame tip left (shorter) ── */}
-        <motion.div
-          style={{
-            position: 'absolute',
-            top: -10 * scale, left: '20%',
-            width: 9 * scale, height: 18 * scale,
-            background: 'linear-gradient(to top, #38bdf8, #bae6fd 60%, transparent)',
-            borderRadius: '50% 50% 22% 22% / 80% 80% 20% 20%',
-            filter: `blur(${2 * scale}px)`,
-            opacity: 0.75,
-          }}
-          animate={{ scaleY: [1, 1.4, 0.75, 1.2, 1], x: [-scale, scale, 0] }}
-          transition={{ duration: 0.65, repeat: Infinity, ease: 'linear', delay: 0.12 }}
-        />
-
-        {/* ── flame tip right (shorter) ── */}
-        <motion.div
-          style={{
-            position: 'absolute',
-            top: -10 * scale, right: '20%',
-            width: 9 * scale, height: 18 * scale,
-            background: 'linear-gradient(to top, #38bdf8, #bae6fd 60%, transparent)',
-            borderRadius: '50% 50% 22% 22% / 80% 80% 20% 20%',
-            filter: `blur(${2 * scale}px)`,
-            opacity: 0.75,
-          }}
-          animate={{ scaleY: [1, 0.78, 1.35, 0.88, 1], x: [scale, -scale, 0] }}
-          transition={{ duration: 0.65, repeat: Infinity, ease: 'linear', delay: 0.22 }}
-        />
-
-        {/* ── eye left ── */}
-        <div style={{
-          position: 'absolute',
-          top: '38%', left: '24%',
-          width: 9 * scale, height: 9 * scale,
-          background: 'white',
-          borderRadius: '50%',
-          boxShadow: `0 0 ${5 * scale}px rgba(186,230,253,0.9)`,
-        }} />
-
-        {/* ── eye right ── */}
-        <div style={{
-          position: 'absolute',
-          top: '38%', right: '24%',
-          width: 9 * scale, height: 9 * scale,
-          background: 'white',
-          borderRadius: '50%',
-          boxShadow: `0 0 ${5 * scale}px rgba(186,230,253,0.9)`,
-        }} />
-
-        {/* ── base wisp glow ── */}
-        <motion.div
-          style={{
-            position: 'absolute', bottom: 0, left: 0, right: 0,
-            height: 14 * scale,
-            background: 'radial-gradient(ellipse at 50% 100%, rgba(56,189,248,0.4), transparent)',
-            filter: `blur(${3 * scale}px)`,
-          }}
-          animate={{ opacity: [0.4, 0.85, 0.3, 0.9, 0.4] }}
-          transition={{ duration: 0.75, repeat: Infinity, ease: 'linear' }}
-        />
-
+          {/* Bright highlight */}
+          <ellipse cx="22" cy="38" rx="5" ry="8" fill="rgba(186,230,253,0.28)" />
+        </svg>
       </motion.div>
     </motion.div>
   )
@@ -151,9 +91,10 @@ function FlameSpirit({ clicked, scale = 1 }: { clicked: boolean; scale?: number 
 export default function Promethee() {
   const { messages, loading, open, setOpen, sendMessage, getDailyCount, FREE_LIMIT } = usePromethee()
   const { balance, spendGlyphs } = useGlyphs()
-  const [input, setInput]     = useState('')
-  const [clicked, setClicked] = useState(false)
-  const messagesEndRef        = useRef<HTMLDivElement>(null)
+  const [input, setInput]       = useState('')
+  const [clicked, setClicked]   = useState(false)
+  const [cssClicked, setCssClicked] = useState(false)
+  const messagesEndRef          = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -162,6 +103,8 @@ export default function Promethee() {
   const handleButtonClick = () => {
     if (open) { setOpen(false); return }
     setClicked(true)
+    setCssClicked(true)
+    setTimeout(() => setCssClicked(false), 120)
     setTimeout(() => { setClicked(false); setOpen(true) }, 380)
   }
 
@@ -176,12 +119,31 @@ export default function Promethee() {
 
   return (
     <>
+      <style>{`
+        .promethe {
+          transition: filter 0.2s ease;
+          filter: drop-shadow(0 0 6px rgba(0,200,255,0.55));
+        }
+        .promethe:hover {
+          filter: drop-shadow(0 0 13px rgba(0,220,255,0.9));
+          transform: scale(1.12);
+        }
+        .promethe.clicked {
+          transform: scale(0.85);
+          transition: transform 0.08s ease;
+        }
+        @keyframes flameFloat {
+          0%,100% { transform: translateY(0px); }
+          40%      { transform: translateY(-4px); }
+          70%      { transform: translateY(-2px); }
+        }
+      `}</style>
+
       {/* ── Floating flame button ── */}
       <motion.button
         onClick={handleButtonClick}
-        className="fixed bottom-24 right-3 md:bottom-6 md:right-6 z-50"
-        style={{ width: 56, height: 72, background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
-        whileHover={{ scale: 1.08 }}
+        className={`fixed bottom-24 right-3 md:bottom-6 md:right-6 z-50 promethe${cssClicked ? ' clicked' : ''}`}
+        style={{ width: 50, height: 66, background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
       >
         <FlameSpirit clicked={clicked} scale={1} />
       </motion.button>
