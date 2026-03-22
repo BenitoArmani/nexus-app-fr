@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, Suspense, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { CreditCard, Zap, ExternalLink, CheckCircle2, Loader2, ArrowDownToLine } from 'lucide-react'
@@ -14,7 +14,7 @@ const MIN_GLYPHS = 1000
 
 type ConnectStatus = 'loading' | 'none' | 'pending' | 'active'
 
-export default function EarningsPage() {
+function EarningsPage() {
   const { user }                          = useAuth()
   const { balance }                       = useGlyphs()
   const searchParams                      = useSearchParams()
@@ -239,3 +239,5 @@ export default function EarningsPage() {
     </div>
   )
 }
+
+export default function EarningsPageWrapper() { return <Suspense><EarningsPage /></Suspense> }

@@ -1,12 +1,12 @@
 'use client'
-import { useEffect } from 'react'
+import { useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 
 /**
  * /signup?ref=CODE — redirects to /register while preserving the ref query param.
  * This allows referral links of the form /signup?ref=XXXXXXXX to work seamlessly.
  */
-export default function SignupRedirectPage() {
+function SignupRedirectPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const ref = searchParams.get('ref')
@@ -18,3 +18,5 @@ export default function SignupRedirectPage() {
 
   return null
 }
+
+export default function SignupRedirectPageWrapper() { return <Suspense><SignupRedirectPage /></Suspense> }

@@ -255,10 +255,12 @@ function ExploreContent() {
   )
 }
 
-export default function ExplorePage() {
+function ExplorePage() {
   return (
     <Suspense fallback={<div className="flex items-center justify-center h-40 text-zinc-500 text-sm">Chargement...</div>}>
       <ExploreContent />
     </Suspense>
   )
 }
+
+export default function ExplorePageWrapper() { return <Suspense><ExplorePage /></Suspense> }

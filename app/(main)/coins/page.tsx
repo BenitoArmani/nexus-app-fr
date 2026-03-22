@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, Suspense, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Gift, CreditCard, History, ArrowUpRight, ArrowDownLeft } from 'lucide-react'
@@ -28,7 +28,7 @@ const EARN_WAYS = [
   { icon: '🚀', label: 'Reel 10k vues', glyphs: '+200' },
 ]
 
-export default function GlyphsPage() {
+function GlyphsPage() {
   const { balance, getTransactions } = useGlyphs()
   const { user } = useAuth()
   const [loading, setLoading] = useState<string | null>(null)
@@ -203,3 +203,5 @@ export default function GlyphsPage() {
     </div>
   )
 }
+
+export default function GlyphsPageWrapper() { return <Suspense><GlyphsPage /></Suspense> }
