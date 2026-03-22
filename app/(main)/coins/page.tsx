@@ -1,17 +1,20 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Gift, CreditCard, History, ArrowUpRight, ArrowDownLeft } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import GlyphChip from '@/components/ui/GlyphChip'
 import RewardedAd from '@/components/ui/RewardedAd'
 import { useGlyphs } from '@/hooks/useGlyphs'
+import { useAuth } from '@/hooks/useAuth'
+import toast from 'react-hot-toast'
 
 const GLYPH_PACKS = [
-  { id: 'pack_550', glyphs: 550, price: 5, bonus: null, popular: false, color: 'border-white/10' },
-  { id: 'pack_1200', glyphs: 1200, price: 10, bonus: '+100 bonus', popular: true, color: 'border-violet-500/50' },
-  { id: 'pack_2750', glyphs: 2750, price: 20, bonus: '+250 bonus', popular: false, color: 'border-amber-500/30' },
-  { id: 'pack_6000', glyphs: 6000, price: 40, bonus: '+1000 bonus', popular: false, color: 'border-cyan-500/30' },
+  { id: 'pack_550',  glyphs: 550,  price: 5,  bonus: null,          popular: false, color: 'border-white/10'      },
+  { id: 'pack_1200', glyphs: 1200, price: 10, bonus: '+100 bonus',   popular: true,  color: 'border-violet-500/50' },
+  { id: 'pack_2750', glyphs: 2750, price: 20, bonus: '+250 bonus',   popular: false, color: 'border-amber-500/30'  },
+  { id: 'pack_6000', glyphs: 6000, price: 40, bonus: '+1 000 bonus', popular: false, color: 'border-cyan-500/30'   },
 ]
 
 const EARN_WAYS = [
@@ -27,21 +30,42 @@ const EARN_WAYS = [
 
 export default function GlyphsPage() {
   const { balance, getTransactions } = useGlyphs()
+  const { user } = useAuth()
   const [loading, setLoading] = useState<string | null>(null)
+  const searchParams = useSearchParams()
   const transactions = getTransactions()
 
+  // Handle Stripe return
+  useEffect(() => {
+    if (searchParams.get('success') === 'true') {
+      const glyphs = searchParams.get('glyphs')
+      toast.success(`⬡ +${glyphs} GLYPHS crédités ! Merci pour ton achat 🎉`, {
+        duration: 5000,
+        style: { background: '#1a0a2e', color: '#c084fc', border: '1px solid rgba(139,92,246,0.3)', borderRadius: '12px' }
+      })
+      // Clean URL
+      window.history.replaceState({}, '', '/glyphs')
+    }
+    if (searchParams.get('cancelled') === 'true') {
+      toast('Paiement annulé.', { icon: '↩️' })
+      window.history.replaceState({}, '', '/glyphs')
+    }
+  }, [searchParams])
+
   const buyPack = async (packId: string) => {
+    if (!user) { toast.error('Connecte-toi pour acheter des GLYPHS'); return }
     setLoading(packId)
     try {
       const res = await fetch('/api/coins/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ packId, userId: 'demo' }),
+        body: JSON.stringify({ packId, userId: user.id }),
       })
       const data = await res.json()
-      if (data.url) window.open(data.url, '_blank')
+      if (data.url) window.location.href = data.url
+      else toast.error(data.error || 'Erreur paiement')
     } catch {
-      alert(`Mode démo — En production, vous seriez redirigé vers Stripe pour acheter le ${packId}`)
+      toast.error('Erreur de connexion au paiement')
     }
     setLoading(null)
   }

@@ -7,12 +7,15 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
-    detectSessionInUrl: true,
+    detectSessionInUrl: false,
+    // pkce required for email confirmation links and password reset (/auth/callback)
     flowType: 'pkce',
+    // Bypass Web Lock — prevents AbortError when multiple useAuth instances
+    // call getSession() concurrently (Next.js App Router per-component hooks)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    lock: async (_name: string, _t: number, fn: () => Promise<any>) => fn(),
   },
-  realtime: {
-    params: { eventsPerSecond: 10 },
-  },
+  realtime: { params: { eventsPerSecond: 10 } },
 })
 
 export type Database = {

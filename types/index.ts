@@ -23,6 +23,7 @@ export interface Post {
   views: number
   is_premium: boolean
   is_explicit?: boolean
+  bets_disabled?: boolean
   created_at: string
   user?: User
   liked_by_me?: boolean
@@ -48,8 +49,24 @@ export interface Comment {
   post_id: string
   user_id: string
   content: string
+  gif_url?: string
+  gif_preview_url?: string
+  gif_source?: 'tenor' | 'upload'
+  likes_count?: number
   created_at: string
   user?: User
+}
+
+export interface UserGif {
+  id: string
+  user_id: string
+  url: string
+  preview_url?: string
+  title?: string
+  source: 'tenor' | 'upload'
+  category: string
+  tenor_id?: string
+  created_at: string
 }
 
 export interface Message {

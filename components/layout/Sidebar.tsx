@@ -232,7 +232,7 @@ export default function Sidebar() {
           </Link>
         )}
 
-        <Link href="/settings">
+        <Link href="/preferences">
           <div className="flex items-center gap-3 px-3 py-2.5 rounded-[14px] text-sm font-medium text-text-secondary hover:bg-white/5 hover:text-text-primary transition-all">
             <Settings size={18} className="flex-shrink-0" />
             <span className="hidden lg:block">Paramètres</span>

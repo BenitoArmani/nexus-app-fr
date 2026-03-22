@@ -1,13 +1,17 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Send, Hash, Volume2, Users, Shield, Crown, BookOpen, CheckCircle2, Circle, Lock, Play, FileText, ChevronDown } from 'lucide-react'
+import { Send, Hash, Volume2, Users, Shield, Crown, BookOpen, CheckCircle2, Circle, Lock, Play, FileText, ChevronDown, Trophy, X } from 'lucide-react'
 import ServerSidebar from '@/components/servers/ServerSidebar'
 import ChannelList from '@/components/servers/ChannelList'
+import BetCard, { type ChannelBet } from '@/components/servers/BetCard'
 import Avatar from '@/components/ui/Avatar'
 import Badge from '@/components/ui/Badge'
+import { useAuth } from '@/hooks/useAuth'
+import { useGlyphs } from '@/hooks/useGlyphs'
 import { MOCK_SERVERS, MOCK_USERS } from '@/lib/mock-data'
 import { timeAgo, formatNumber } from '@/lib/utils'
+import toast from 'react-hot-toast'
 import type { Server, Channel } from '@/types'
 
 /* ─── Mock messages ─── */
@@ -222,18 +226,58 @@ function CourseView({ channelName }: { channelName: string }) {
 
 /* ─── Main page ─── */
 export default function ServersPage() {
+  const { user }                          = useAuth()
+  const { balance }                       = useGlyphs()
   const [activeServer,  setActiveServer]  = useState<Server>(MOCK_SERVERS[0])
   const [activeChannel, setActiveChannel] = useState<Channel | null>(null)
   const [input,  setInput]   = useState('')
   const [messages, setMessages] = useState(MOCK_SERVER_MESSAGES)
+  const [bets, setBets]         = useState<ChannelBet[]>([])
+  const [showBetForm, setShowBetForm] = useState(false)
+  const [betQuestion, setBetQuestion] = useState('')
+  const [betAmount, setBetAmount]     = useState('100')
+  const [betLoading, setBetLoading]   = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages])
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages, bets])
+
+  // Load bets for active channel
+  useEffect(() => {
+    if (!activeChannel) return
+    fetch(`/api/channel-bets?channelId=${activeChannel.id}`)
+      .then(r => r.json())
+      .then(d => setBets(d.bets ?? []))
+      .catch(() => {})
+  }, [activeChannel])
 
   const sendMessage = () => {
     if (!input.trim()) return
     setMessages(prev => [...prev, { id: Date.now(), user: MOCK_USERS[4], content: input, created_at: new Date().toISOString(), role: 'member' as const }])
     setInput('')
+  }
+
+  const createBet = async () => {
+    if (!user || !activeChannel || !betQuestion.trim()) return
+    const amount = parseInt(betAmount) || 0
+    if (amount < 10) { toast.error('Mise minimum 10 GLYPHS'); return }
+    if (balance < amount) { toast.error('Solde insuffisant'); return }
+    setBetLoading(true)
+    const res = await fetch('/api/channel-bets', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ creatorId: user.id, channelId: activeChannel.id, question: betQuestion.trim(), amount }),
+    })
+    const data = await res.json()
+    if (data.bet) {
+      setBets(prev => [data.bet, ...prev])
+      setBetQuestion('')
+      setBetAmount('100')
+      setShowBetForm(false)
+      toast.success('Pari lancé ! En attente d\'un adversaire 🎲')
+    } else {
+      toast.error(data.error || 'Erreur')
+    }
+    setBetLoading(false)
   }
 
   const isCourse = activeChannel?.name === 'cours' || activeChannel?.name?.startsWith('📚')
@@ -265,12 +309,23 @@ export default function ServersPage() {
           <CourseView channelName={activeChannel?.name ?? 'cours'} />
         ) : (
           <>
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+              {/* Bets for this channel */}
+              {bets.map(bet => (
+                <BetCard key={bet.id} bet={bet} onUpdate={() => {
+                  if (activeChannel) {
+                    fetch(`/api/channel-bets?channelId=${activeChannel.id}`)
+                      .then(r => r.json()).then(d => setBets(d.bets ?? []))
+                  }
+                }} />
+              ))}
+
+              {/* Messages */}
               {messages.map(msg => {
                 const roleInfo = ROLE_BADGES[msg.role]
                 const RoleIcon = roleInfo.icon
                 return (
-                  <motion.div key={msg.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex gap-3">
+                  <motion.div key={msg.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex gap-3 py-1">
                     <Avatar src={msg.user.avatar_url} name={msg.user.full_name} size="md" />
                     <div>
                       <div className="flex items-center gap-2 mb-1">
@@ -288,8 +343,50 @@ export default function ServersPage() {
               <div ref={bottomRef} />
             </div>
 
+            {/* Bet form */}
+            <AnimatePresence>
+              {showBetForm && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+                  className="overflow-hidden border-t border-amber-500/20 bg-amber-500/5 px-4 py-3"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs font-bold text-amber-400 flex items-center gap-1"><Trophy size={12} /> Lancer un pari</p>
+                    <button onClick={() => setShowBetForm(false)} className="text-zinc-500 hover:text-white"><X size={14} /></button>
+                  </div>
+                  <input
+                    type="text" value={betQuestion} onChange={e => setBetQuestion(e.target.value)}
+                    placeholder="Ex: Je parie que Mbappé marque ce soir..."
+                    className="w-full bg-surface-3 border border-white/10 rounded-xl px-3 py-2 text-sm text-white mb-2 focus:outline-none focus:border-amber-500/50 placeholder:text-zinc-600"
+                  />
+                  <div className="flex gap-2">
+                    <div className="flex gap-1">
+                      {[50, 100, 500].map(n => (
+                        <button key={n} onClick={() => setBetAmount(String(n))}
+                          className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-colors ${betAmount === String(n) ? 'bg-amber-500 text-white' : 'bg-surface-3 text-zinc-400 hover:text-white'}`}>
+                          {n}⬡
+                        </button>
+                      ))}
+                    </div>
+                    <input type="number" value={betAmount} onChange={e => setBetAmount(e.target.value)}
+                      className="w-20 bg-surface-3 border border-white/10 rounded-xl px-2 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500/50"
+                    />
+                    <button onClick={createBet} disabled={betLoading || !betQuestion.trim()}
+                      className="ml-auto px-4 py-1.5 rounded-xl bg-amber-500 text-white text-xs font-bold disabled:opacity-40 hover:bg-amber-400 transition-colors">
+                      {betLoading ? '...' : 'Lancer 🎲'}
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             <div className="px-4 py-3 border-t border-white/5 flex-shrink-0">
               <div className="flex items-center gap-2 bg-surface-2 border border-white/5 rounded-2xl px-4 py-2.5">
+                <button onClick={() => setShowBetForm(f => !f)}
+                  className={`text-sm transition-colors flex-shrink-0 ${showBetForm ? 'text-amber-400' : 'text-zinc-500 hover:text-amber-400'}`}
+                  title="Lancer un pari">
+                  🎲
+                </button>
                 <input type="text" value={input} onChange={e => setInput(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && sendMessage()}
                   placeholder={`Message #${activeChannel?.name || 'général'}`}

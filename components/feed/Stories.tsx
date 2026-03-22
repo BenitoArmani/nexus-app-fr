@@ -4,13 +4,15 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import Image from 'next/image'
 import Avatar from '@/components/ui/Avatar'
-import { MOCK_STORIES, MOCK_CURRENT_USER } from '@/lib/mock-data'
+import { MOCK_STORIES } from '@/lib/mock-data'
 import { formatNumber } from '@/lib/utils'
+import { useAuth } from '@/hooks/useAuth'
 import type { Story } from '@/types'
 
 const STORY_DURATION = 5000 // ms
 
 export default function Stories() {
+  const { user } = useAuth()
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
   const [progress, setProgress] = useState(0)
 
@@ -51,7 +53,7 @@ export default function Stories() {
         <div className="flex-shrink-0 flex flex-col items-center gap-1.5 cursor-pointer group">
           <div className="relative w-16 h-16">
             <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-white/10">
-              <Avatar src={MOCK_CURRENT_USER.avatar_url} name={MOCK_CURRENT_USER.full_name} size="lg" />
+              <Avatar src={user?.avatar_url ?? null} name={user?.full_name ?? 'Moi'} size="lg" />
             </div>
             <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-violet-500 rounded-full flex items-center justify-center border-2 border-bg-primary">
               <Plus size={10} className="text-white" />

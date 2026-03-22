@@ -1,0 +1,22 @@
+
+# Claude Code Instructions
+
+You are debugging a production auth issue.
+
+Rules:
+- Minimize token usage
+- Do not repeat context already written in markdown files
+- Read memory.md and debug-auth.md first
+- Focus only on identifying the root cause and exact fix
+- Do not rewrite unrelated code
+- Do not give generic OAuth explanations
+- If uncertain, list the exact missing evidence needed
+- Output only actionable findings
+
+Priority:
+1. redirect URLs
+2. callback routes
+3. env vars
+4. Supabase auth config
+5. Google OAuth config
+6. Vercel production domain mismatch

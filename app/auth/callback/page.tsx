@@ -4,84 +4,45 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { NexusHexIcon } from '@/components/ui/NexusLogo'
 
+// Handles PKCE email confirmation links: /auth/callback?code=...
+// Also handles password reset links that arrive here.
 export default function AuthCallback() {
   const router = useRouter()
 
   useEffect(() => {
-    let redirected = false
-
-    const doRedirect = (path: string) => {
-      if (!redirected) {
-        redirected = true
-        router.replace(path)
-      }
-    }
-
-    // Listen for auth state changes (SIGNED_IN, PASSWORD_RECOVERY, etc.)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        subscription.unsubscribe()
-        doRedirect('/feed')
-      } else if (event === 'PASSWORD_RECOVERY') {
-        subscription.unsubscribe()
-        doRedirect('/auth/reset-password')
-      } else if (event === 'SIGNED_OUT') {
-        subscription.unsubscribe()
-        doRedirect('/login')
-      }
-    })
-
-    // CRITICAL: With PKCE flow, the supabase singleton may already be initialized
-    // (detectSessionInUrl only runs once at init). We must explicitly exchange
-    // the code from the URL to get a session.
-    const code = new URLSearchParams(window.location.search).get('code')
-    const error = new URLSearchParams(window.location.search).get('error')
-    const errorDescription = new URLSearchParams(window.location.search).get('error_description')
+    const params    = new URLSearchParams(window.location.search)
+    const code      = params.get('code')
+    const error     = params.get('error')
+    const flowType  = params.get('type') // Supabase sets ?type=recovery for password reset links
 
     if (error) {
-      console.error('[NEXUS] OAuth error:', error, errorDescription)
-      subscription.unsubscribe()
-      doRedirect(`/login?error=${encodeURIComponent(errorDescription ?? error)}`)
+      router.replace(`/login?error=${encodeURIComponent(params.get('error_description') ?? error)}`)
       return
     }
 
     if (code) {
-      supabase.auth.exchangeCodeForSession(code).then(({ error: exchangeError }) => {
-        if (exchangeError) {
-          console.error('[NEXUS] PKCE exchange failed:', exchangeError.message)
-          subscription.unsubscribe()
-          doRedirect('/login?error=auth_failed')
+      supabase.auth.exchangeCodeForSession(code).then(({ error: err }) => {
+        if (err) {
+          router.replace('/login?error=auth_failed')
+        } else if (flowType === 'recovery') {
+          // Password reset flow — Supabase sets ?type=recovery in the email link
+          router.replace('/auth/reset-password')
+        } else {
+          router.replace('/feed')
         }
-        // If success, onAuthStateChange will fire SIGNED_IN → redirect handled above
       })
     } else {
-      // No code — check if there's already a session (e.g. email link auth)
+      // No code — check for existing session (magic link may have set it)
       supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session) {
-          doRedirect('/feed')
-        } else {
-          // Fallback: wait up to 8s for onAuthStateChange
-          const timeout = setTimeout(() => {
-            subscription.unsubscribe()
-            doRedirect('/login?error=timeout')
-          }, 8000)
-          // Store timeout ref for cleanup
-          ;(window as Window & { _nexusAuthTimeout?: ReturnType<typeof setTimeout> })._nexusAuthTimeout = timeout
-        }
+        router.replace(session ? '/feed' : '/login')
       })
     }
-
-    return () => {
-      subscription.unsubscribe()
-      const w = window as Window & { _nexusAuthTimeout?: ReturnType<typeof setTimeout> }
-      if (w._nexusAuthTimeout) clearTimeout(w._nexusAuthTimeout)
-    }
-  }, [router])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="min-h-screen bg-bg-primary flex items-center justify-center">
-      <div className="text-center space-y-4">
-        <div className="flex justify-center animate-pulse">
+      <div className="flex flex-col items-center gap-4">
+        <div className="animate-pulse">
           <NexusHexIcon size={56} />
         </div>
         <p className="text-text-muted text-sm">Connexion en cours…</p>

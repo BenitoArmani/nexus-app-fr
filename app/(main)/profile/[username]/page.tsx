@@ -12,6 +12,7 @@ import { useStreak } from '@/hooks/useStreak'
 import { formatNumber } from '@/lib/utils'
 import { MOCK_USERS, MOCK_POSTS, MOCK_CURRENT_USER } from '@/lib/mock-data'
 import { ProfileSkeleton } from '@/components/ui/Skeleton'
+import ProfileEditModal from '@/components/profile/ProfileEditModal'
 import type { User, Post } from '@/types'
 
 export default function ProfilePage() {
@@ -22,6 +23,7 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState<'posts' | 'reels'>('posts')
   const [following, setFollowing] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [editOpen, setEditOpen] = useState(false)
 
   const isOwn = currentUser?.username === username
 
@@ -160,7 +162,10 @@ export default function ProfilePage() {
         {/* Actions */}
         <div className="flex gap-2">
           {isOwn ? (
-            <button className="flex-1 py-2 border border-white/10 rounded-xl text-sm font-semibold text-white hover:bg-white/5 transition-colors flex items-center justify-center gap-2">
+            <button
+              onClick={() => setEditOpen(true)}
+              className="flex-1 py-2 border border-white/10 rounded-xl text-sm font-semibold text-white hover:bg-white/5 transition-colors flex items-center justify-center gap-2"
+            >
               <Settings size={14} /> Modifier le profil
             </button>
           ) : (
@@ -250,6 +255,8 @@ export default function ProfilePage() {
           <p className="text-sm">Aucun reel pour l'instant</p>
         </div>
       )}
+
+      <ProfileEditModal open={editOpen} onClose={() => setEditOpen(false)} />
     </div>
   )
 }

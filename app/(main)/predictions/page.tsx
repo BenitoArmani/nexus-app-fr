@@ -3,159 +3,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Sparkles, TrendingUp, Users, Clock, Flame, Plus, ChevronRight, CheckCircle2 } from 'lucide-react'
 import { useGlyphs } from '@/hooks/useGlyphs'
-
-interface Prediction {
-  id: string
-  category: string
-  categoryEmoji: string
-  categoryColor: string
-  question: string
-  yesPercent: number
-  noPercent: number
-  totalStaked: number
-  totalBettors: number
-  endsAt: number
-  source: string
-  trending?: boolean
-  resolved?: boolean
-  resolvedTo?: 'yes' | 'no'
-}
-
-const PREDICTIONS: Prediction[] = [
-  {
-    id: '1',
-    category: 'Gaming',
-    categoryEmoji: '🎮',
-    categoryColor: 'text-red-400',
-    question: 'GTA 6 sortira avant fin 2025 ?',
-    yesPercent: 78,
-    noPercent: 22,
-    totalStaked: 45230,
-    totalBettors: 1247,
-    endsAt: new Date('2025-12-31').getTime(),
-    source: 'rockstargames.com officiel',
-    trending: true,
-  },
-  {
-    id: '2',
-    category: 'Gaming',
-    categoryEmoji: '🎮',
-    categoryColor: 'text-red-400',
-    question: 'GTA 6 sera disponible sur PC à la sortie ?',
-    yesPercent: 31,
-    noPercent: 69,
-    totalStaked: 18420,
-    totalBettors: 892,
-    endsAt: new Date('2025-12-31').getTime(),
-    source: 'rockstargames.com officiel',
-  },
-  {
-    id: '3',
-    category: 'Crypto',
-    categoryEmoji: '₿',
-    categoryColor: 'text-amber-400',
-    question: 'Bitcoin dépassera 200 000$ avant 2026 ?',
-    yesPercent: 54,
-    noPercent: 46,
-    totalStaked: 128900,
-    totalBettors: 3821,
-    endsAt: new Date('2025-12-31').getTime(),
-    source: 'coinmarketcap.com',
-    trending: true,
-  },
-  {
-    id: '4',
-    category: 'Tech & IA',
-    categoryEmoji: '🤖',
-    categoryColor: 'text-cyan-400',
-    question: 'OpenAI lancera GPT-5 avant juin 2025 ?',
-    yesPercent: 67,
-    noPercent: 33,
-    totalStaked: 34500,
-    totalBettors: 1456,
-    endsAt: new Date('2025-06-01').getTime(),
-    source: 'openai.com officiel',
-  },
-  {
-    id: '5',
-    category: 'Tech & IA',
-    categoryEmoji: '🤖',
-    categoryColor: 'text-cyan-400',
-    question: "Apple lancera ses lunettes AR en 2025 ?",
-    yesPercent: 42,
-    noPercent: 58,
-    totalStaked: 22100,
-    totalBettors: 987,
-    endsAt: new Date('2025-12-31').getTime(),
-    source: 'apple.com officiel',
-  },
-  {
-    id: '6',
-    category: 'Géopolitique',
-    categoryEmoji: '🌍',
-    categoryColor: 'text-blue-400',
-    question: "La Russie et l'Ukraine signeront un accord de paix en 2025 ?",
-    yesPercent: 18,
-    noPercent: 82,
-    totalStaked: 87400,
-    totalBettors: 4201,
-    endsAt: new Date('2025-12-31').getTime(),
-    source: 'reuters.com / AP',
-    trending: true,
-  },
-  {
-    id: '7',
-    category: 'Sport',
-    categoryEmoji: '🏆',
-    categoryColor: 'text-yellow-400',
-    question: 'La France gagnera le Mondial 2026 ?',
-    yesPercent: 23,
-    noPercent: 77,
-    totalStaked: 56700,
-    totalBettors: 2890,
-    endsAt: new Date('2026-07-15').getTime(),
-    source: 'fifa.com officiel',
-  },
-  {
-    id: '8',
-    category: 'Sport',
-    categoryEmoji: '🏆',
-    categoryColor: 'text-yellow-400',
-    question: 'Mbappé marquera 30 buts cette saison ?',
-    yesPercent: 61,
-    noPercent: 39,
-    totalStaked: 31200,
-    totalBettors: 1543,
-    endsAt: new Date('2025-06-01').getTime(),
-    source: 'realmadrid.com / transfermarkt.com',
-  },
-  {
-    id: '9',
-    category: 'Pop Culture',
-    categoryEmoji: '🎬',
-    categoryColor: 'text-pink-400',
-    question: "Qui gagnera l'Oscar du meilleur film 2026 ?",
-    yesPercent: 45,
-    noPercent: 55,
-    totalStaked: 14300,
-    totalBettors: 672,
-    endsAt: new Date('2026-03-01').getTime(),
-    source: 'oscars.org officiel',
-  },
-  {
-    id: '10',
-    category: '🇫🇷 France',
-    categoryEmoji: '🇫🇷',
-    categoryColor: 'text-blue-300',
-    question: 'Le prix du pain dépassera 2€ la baguette en 2025 ?',
-    yesPercent: 71,
-    noPercent: 29,
-    totalStaked: 9800,
-    totalBettors: 452,
-    endsAt: new Date('2025-12-31').getTime(),
-    source: 'insee.fr statistiques',
-  },
-]
+import { usePredictions, type Prediction } from '@/hooks/usePredictions'
 
 const CATEGORIES = ['Tout', 'Gaming', 'Crypto', 'Tech & IA', 'Géopolitique', 'Sport', 'Pop Culture', '🇫🇷 France']
 
@@ -283,16 +131,18 @@ function BetModal({ prediction, onClose, onBet }: {
 }
 
 export default function PredictionsPage() {
-  const { balance, spendGlyphs, addGlyphs } = useGlyphs()
-  const [category, setCategory] = useState('Tout')
-  const [activePrediction, setActivePrediction] = useState<Prediction | null>(null)
-  const [userBets, setUserBets] = useState<Record<string, { side: 'yes' | 'no'; amount: number }>>({})
+  const { balance, spendGlyphs }                              = useGlyphs()
+  const { predictions, placeBet }                             = usePredictions()
+  const [category, setCategory]                               = useState('Tout')
+  const [activePrediction, setActivePrediction]               = useState<Prediction | null>(null)
+  const [userBets, setUserBets]                               = useState<Record<string, { side: 'yes' | 'no'; amount: number }>>({})
 
-  const filtered = PREDICTIONS.filter(p => category === 'Tout' || p.category === category)
-  const trending = PREDICTIONS.filter(p => p.trending)
+  const filtered = predictions.filter(p => category === 'Tout' || p.category === category)
+  const trending = predictions.filter(p => p.trending)
 
   const handleBet = (prediction: Prediction, side: 'yes' | 'no', amount: number) => {
     if (!spendGlyphs(amount, `Pari: ${prediction.question}`)) return
+    placeBet(prediction.id, side, amount)
     setUserBets(prev => ({ ...prev, [prediction.id]: { side, amount } }))
     setActivePrediction(null)
   }

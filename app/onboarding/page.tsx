@@ -13,7 +13,7 @@ const PROFILE_ORDER: ProfileType[] = [
 
 export default function OnboardingPage() {
   const router = useRouter()
-  const { setProfileType, completeOnboarding } = useUserProfile()
+  const { finishOnboarding } = useUserProfile()
   const { switchBubble } = useBubbles()
   const [selected, setSelected] = useState<ProfileType | null>(null)
   const [step, setStep] = useState<'select' | 'preview'>('select')
@@ -25,9 +25,7 @@ export default function OnboardingPage() {
 
   const handleConfirm = () => {
     if (!selected) return
-    setProfileType(selected)
-    completeOnboarding()
-    // Switch to first suggested bubble
+    finishOnboarding(selected)
     const firstBubble = PROFILES[selected].suggestedBubbles[0]
     if (firstBubble) switchBubble(firstBubble)
     router.push('/feed')
@@ -36,7 +34,7 @@ export default function OnboardingPage() {
   const selectedData = selected ? PROFILES[selected] : null
 
   return (
-    <div className="min-h-screen bg-bg-primary flex flex-col items-center justify-start py-8 px-4 overflow-auto">
+    <div className="min-h-screen bg-bg-primary flex flex-col items-center justify-start py-8 px-4 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
       {/* Background glow */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-violet-600/10 rounded-full blur-[100px]" />

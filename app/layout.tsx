@@ -1,10 +1,26 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
+import { Sora } from 'next/font/google'
 import { Toaster } from 'react-hot-toast'
 import CookieBanner from '@/components/ui/CookieBanner'
 import GlyphGainToast from '@/components/ui/GlyphGainToast'
+import { AuthProvider } from '@/contexts/AuthContext'
 import './globals.css'
 
+const sora = Sora({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700', '800'],
+  display: 'swap',
+  variable: '--font-sora',
+})
+
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://nexus.app'
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#7c3aed',
+}
 
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
@@ -44,13 +60,19 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr">
+    <html lang="fr" className={sora.variable}>
       <head>
-        <meta name="theme-color" content="#7c3aed" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        {/* Google AdSense */}
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4771572651439121"
+          crossOrigin="anonymous"
+        />
       </head>
       <body className="antialiased">
+        <AuthProvider>
         {children}
         <Toaster
           position="bottom-right"
@@ -60,14 +82,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
         <CookieBanner />
         <GlyphGainToast />
-        {/* Google AdSense — actif quand NEXT_PUBLIC_ADSENSE_ID est défini */}
-        {process.env.NEXT_PUBLIC_ADSENSE_ID && (
-          <script
-            async
-            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_ID}`}
-            crossOrigin="anonymous"
-          />
-        )}
+        </AuthProvider>
         <script
           dangerouslySetInnerHTML={{
             __html: `

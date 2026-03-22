@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Mail, Lock, User, Chrome, Check, X, Loader2, Eye, EyeOff } from 'lucide-react'
+import { Mail, Lock, User, Check, X, Loader2, Eye, EyeOff } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import { NexusHexIcon } from '@/components/ui/NexusLogo'
 import { useAuth } from '@/hooks/useAuth'
@@ -26,7 +26,7 @@ export default function RegisterPage() {
   const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>('idle')
   const [usernameMessage, setUsernameMessage] = useState('')
   const [suggestions, setSuggestions] = useState<string[]>([])
-  const { signUp, signInWithGoogle, googleLoading } = useAuth()
+  const { signUp } = useAuth()
   const router = useRouter()
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -88,7 +88,13 @@ export default function RegisterPage() {
       toast.success('Compte créé ! Bienvenue sur NEXUS 🎉')
       router.push('/onboarding')
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Erreur lors de l\'inscription')
+      const msg = err instanceof Error ? err.message : 'Erreur lors de l\'inscription'
+      if (msg.includes('email de confirmation')) {
+        toast(msg, { icon: '📧', style: { background: '#1a0a2e', color: '#e2e8f0', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px' } })
+        router.push('/login')
+        return
+      }
+      toast.error(msg)
     } finally {
       setLoading(false)
     }
@@ -108,7 +114,7 @@ export default function RegisterPage() {
     && confirmMatch
 
   return (
-    <div className="min-h-screen bg-bg-primary flex items-center justify-center p-4">
+    <div className="min-h-screen bg-bg-primary flex items-start sm:items-center justify-center p-4 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-violet-600/10 rounded-full blur-3xl" />
         <div className="absolute bottom-1/3 left-1/4 w-96 h-96 bg-rose-600/10 rounded-full blur-3xl" />
@@ -124,30 +130,6 @@ export default function RegisterPage() {
         </div>
 
         <div className="bg-surface-2 border border-white/5 rounded-2xl p-6 space-y-4">
-          {/* Google */}
-          <button
-            onClick={async () => {
-              try {
-                await signInWithGoogle()
-              } catch (err: unknown) {
-                const msg = err instanceof Error ? err.message : String(err)
-                console.error('[NEXUS] signInWithGoogle (register) failed:', msg)
-                toast.error(`Google: ${msg}`)
-              }
-            }}
-            disabled={googleLoading}
-            className="w-full flex items-center justify-center gap-2 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-sm text-text-primary font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {googleLoading ? <Loader2 size={16} className="animate-spin" /> : <Chrome size={16} />}
-            {googleLoading ? 'Redirection...' : 'Continuer avec Google'}
-          </button>
-
-          <div className="flex items-center gap-3">
-            <div className="flex-1 h-px bg-white/10" />
-            <span className="text-xs text-text-muted">ou</span>
-            <div className="flex-1 h-px bg-white/10" />
-          </div>
-
           <form onSubmit={handleSubmit} className="space-y-3">
 
             {/* Username */}

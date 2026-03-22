@@ -9,7 +9,6 @@ import {
 } from 'lucide-react'
 import Avatar from '@/components/ui/Avatar'
 import PasswordStrength from '@/components/ui/PasswordStrength'
-import { MOCK_CURRENT_USER } from '@/lib/mock-data'
 import toast from 'react-hot-toast'
 
 // ─── Types ────────────────────────────────────────────────────────────────────

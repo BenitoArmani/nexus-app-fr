@@ -1,0 +1,54 @@
+# DEBUG MISSION — Google login bug
+
+## Goal
+Trouver pourquoi les utilisateurs ne peuvent pas se connecter avec Google sur le site en production.
+
+## Current stack
+- Frontend: [ton framework]
+- Hosting: Vercel
+- Auth: Supabase Auth
+- Provider: Google OAuth
+
+## Symptoms
+- Les utilisateurs n’arrivent pas à se connecter avec Google
+- Supabase semble correct
+- Google provider semble activé
+- On a remarqué qu’un lien/URL manquait dans Vercel
+- Claude tournait en boucle sans identifier la cause
+
+## What Claude must do
+1. Inspect all auth-related code paths
+2. Find every redirect URL / callback URL / site URL / env var involved
+3. Compare prod URL, Supabase config, Google OAuth config, and Vercel env vars
+4. Identify exact mismatch or likely root cause
+5. Output:
+   - probable root cause
+   - files to edit
+   - exact code/env changes
+   - test plan to verify fix
+
+## Rules
+- Do not rewrite the whole auth system
+- Do not make assumptions without pointing to the file or config involved
+- Be concise
+- Prioritize production login flow only
+
+## Suspected causes
+- wrong redirectTo
+- wrong SITE_URL
+- missing allowed redirect URL in Supabase
+- wrong Google authorized redirect URI
+- wrong Vercel env var
+- preview URL used instead of production URL
+
+## Required output format
+### Root cause
+...
+### Evidence
+...
+### Fix
+...
+### Files to edit
+...
+### Test plan
+...

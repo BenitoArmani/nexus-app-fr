@@ -10,20 +10,20 @@ import NotificationToast from '@/components/ui/NotificationToast'
 import NexusLogo from '@/components/ui/NexusLogo'
 import { useAuth } from '@/hooks/useAuth'
 import { useGlyphs } from '@/hooks/useGlyphs'
+import { useNotifications } from '@/hooks/useNotifications'
 
 export default function Topbar() {
-  const { user } = useAuth()
-  const { balance } = useGlyphs()
-  const [searchOpen, setSearchOpen] = useState(false)
-  const [notifOpen, setNotifOpen] = useState(false)
+  const { user }                                          = useAuth()
+  const { balance }                                       = useGlyphs()
+  const { notifications, unreadCount, markAllRead }       = useNotifications(user?.id ?? null)
+  const [searchOpen, setSearchOpen]                       = useState(false)
+  const [notifOpen, setNotifOpen]                         = useState(false)
 
   return (
     <>
       <header className="fixed top-0 left-0 right-0 z-40 h-14 bg-bg-primary/90 backdrop-blur-xl border-b border-white/5 flex items-center px-4 gap-3 md:hidden">
-        {/* Logo */}
         <NexusLogo size={32} showText animate href="/feed" />
 
-        {/* Search bar (opens modal) */}
         <div className="flex-1 max-w-md">
           <button
             onClick={() => setSearchOpen(true)}
@@ -41,15 +41,20 @@ export default function Topbar() {
               {balance.toLocaleString('fr-FR')}
             </span>
           </Link>
+
           <Button variant="ghost" size="icon" className="relative" onClick={() => setNotifOpen(!notifOpen)}>
             <Bell size={18} />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full" />
+            {unreadCount > 0 && (
+              <span className="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full" />
+            )}
           </Button>
+
           <Link href="/messages">
             <Button variant="ghost" size="icon">
               <MessageCircle size={18} />
             </Button>
           </Link>
+
           {user && (
             <Link href={`/profile/${user.username}`}>
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
@@ -61,7 +66,13 @@ export default function Topbar() {
       </header>
 
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
-      <NotificationToast open={notifOpen} onClose={() => setNotifOpen(false)} />
+      <NotificationToast
+        open={notifOpen}
+        onClose={() => setNotifOpen(false)}
+        notifications={notifications}
+        unreadCount={unreadCount}
+        onMarkAllRead={markAllRead}
+      />
     </>
   )
 }

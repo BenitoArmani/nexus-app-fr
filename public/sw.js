@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nexus-v1'
+const CACHE_NAME = 'nexus-v4'
 const OFFLINE_URL = '/offline.html'
 
 const STATIC_ASSETS = [
@@ -26,6 +26,13 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return
   const url = new URL(event.request.url)
+
+  // Only handle same-origin requests — never intercept cross-origin (Supabase, Google, etc.)
+  if (url.origin !== self.location.origin) return
+
+  // Auth routes: always network-only, never cache
+  const AUTH_PATHS = ['/login', '/register', '/auth/', '/onboarding']
+  if (AUTH_PATHS.some(p => url.pathname.startsWith(p))) return
 
   // API: network first
   if (url.pathname.startsWith('/api/')) {

@@ -225,12 +225,18 @@ export function useUserProfile() {
 
   const completeOnboarding = () => save({ ...profile, completedOnboarding: true })
 
+  // Atomic: set type + mark onboarding done in one write (avoids stale-state race)
+  const finishOnboarding = (type: ProfileType) => {
+    save({ ...profile, type, preferredBubbles: PROFILES[type].suggestedBubbles, completedOnboarding: true })
+  }
+
   return {
     profile,
     loaded,
     profileData: PROFILES[profile.type],
     setProfileType,
     completeOnboarding,
+    finishOnboarding,
     needsOnboarding: loaded && !profile.completedOnboarding,
   }
 }

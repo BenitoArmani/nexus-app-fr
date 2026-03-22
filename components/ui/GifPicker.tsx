@@ -1,94 +1,190 @@
 'use client'
-import { useState, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { Search, X } from 'lucide-react'
-import type { GifResult } from '@/types'
-
-// Giphy public beta key (gratuit pour le dev)
-const GIPHY_KEY = 'dc6zaTOxFJmzC'
+import { Search, X, Bookmark, Plus } from 'lucide-react'
+import Image from 'next/image'
+import type { GifResult, UserGif } from '@/types'
 
 interface GifPickerProps {
   onSelect: (gif: GifResult) => void
   onClose: () => void
+  userId?: string
 }
 
-export default function GifPicker({ onSelect, onClose }: GifPickerProps) {
-  const [query, setQuery] = useState('')
-  const [gifs, setGifs] = useState<GifResult[]>([])
-  const [loading, setLoading] = useState(false)
+const CATEGORIES = ['Mes GIFs', 'Réactions', 'Sport', 'Humour', 'Amour', 'Fête']
 
-  const search = useCallback(async (q: string) => {
-    if (!q.trim()) {
-      // Trending
-      setLoading(true)
-      try {
-        const res = await fetch(`https://api.giphy.com/v1/gifs/trending?api_key=${GIPHY_KEY}&limit=12&rating=g`)
-        const data = await res.json()
-        setGifs(data.data?.map((g: any) => ({
-          id: g.id, title: g.title,
-          url: g.images.fixed_height.url,
-          preview_url: g.images.fixed_height_small.url,
-          width: parseInt(g.images.fixed_height.width),
-          height: parseInt(g.images.fixed_height.height),
-        })) || [])
-      } catch { setGifs([]) }
-      setLoading(false)
-      return
-    }
-    setLoading(true)
+export default function GifPicker({ onSelect, onClose, userId }: GifPickerProps) {
+  const [tab, setTab] = useState<'tenor' | 'mine'>('tenor')
+  const [query, setQuery] = useState('')
+  const [results, setResults] = useState<GifResult[]>([])
+  const [myGifs, setMyGifs] = useState<UserGif[]>([])
+  const [myCategory, setMyCategory] = useState('Mes GIFs')
+  const [loadingSearch, setLoadingSearch] = useState(false)
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set())
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const searchTenor = useCallback(async (q: string) => {
+    setLoadingSearch(true)
     try {
-      const res = await fetch(`https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_KEY}&q=${encodeURIComponent(q)}&limit=12&rating=g`)
-      const data = await res.json()
-      setGifs(data.data?.map((g: any) => ({
-        id: g.id, title: g.title,
-        url: g.images.fixed_height.url,
-        preview_url: g.images.fixed_height_small.url,
-        width: parseInt(g.images.fixed_height.width),
-        height: parseInt(g.images.fixed_height.height),
-      })) || [])
-    } catch { setGifs([]) }
-    setLoading(false)
+      const res = await fetch(`/api/gifs/tenor?q=${encodeURIComponent(q || 'trending')}&limit=24`)
+      const json = await res.json()
+      setResults(json.results ?? [])
+    } finally {
+      setLoadingSearch(false)
+    }
   }, [])
+
+  // Load trending on mount
+  useEffect(() => {
+    searchTenor('')
+  }, [searchTenor])
+
+  // Load my GIFs
+  useEffect(() => {
+    if (tab === 'mine' && userId) {
+      fetch(`/api/gifs/save?user_id=${userId}`)
+        .then(r => r.json())
+        .then((data: UserGif[]) => setMyGifs(data))
+        .catch(() => {})
+    }
+  }, [tab, userId])
+
+  const handleQueryChange = (val: string) => {
+    setQuery(val)
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => searchTenor(val), 400)
+  }
+
+  const handleSaveGif = async (gif: GifResult, e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (!userId) return
+    setSavedIds(prev => new Set([...prev, gif.id]))
+    await fetch('/api/gifs/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: userId, url: gif.url, preview_url: gif.preview_url, title: gif.title, source: 'tenor', tenor_id: gif.id }),
+    })
+  }
+
+  const filteredMyGifs = myCategory === 'Mes GIFs' ? myGifs : myGifs.filter(g => g.category === myCategory)
+  const myCategories = ['Mes GIFs', ...Array.from(new Set(myGifs.map(g => g.category).filter(c => c !== 'Mes GIFs')))]
+
+  void CATEGORIES
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10, scale: 0.95 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 10, scale: 0.95 }}
-      className="absolute bottom-full mb-2 left-0 w-80 bg-surface-2 border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 8 }}
+      className="absolute bottom-full left-0 right-0 mb-2 bg-zinc-900 border border-white/10 rounded-2xl overflow-hidden shadow-2xl z-50"
+      style={{ maxHeight: 320 }}
     >
-      <div className="flex items-center justify-between px-3 py-2 border-b border-white/5">
-        <span className="text-sm font-bold text-text-primary">GIFs & Mèmes</span>
-        <button onClick={onClose} className="text-text-muted hover:text-text-primary"><X size={16} /></button>
-      </div>
-      <div className="p-2">
-        <div className="relative mb-2">
-          <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted" />
-          <input
-            value={query} onChange={e => setQuery(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && search(query)}
-            placeholder="Rechercher un GIF..."
-            className="w-full bg-surface-3 border border-white/5 rounded-xl pl-8 pr-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:outline-none"
-            autoFocus
-            onFocus={() => gifs.length === 0 && search('')}
-          />
+      {/* Header */}
+      <div className="flex items-center justify-between px-3 pt-3 pb-2">
+        <div className="flex gap-1">
+          <button
+            onClick={() => setTab('tenor')}
+            className={`px-3 py-1 text-xs font-semibold rounded-full transition-colors ${tab === 'tenor' ? 'bg-violet-500/20 text-violet-300' : 'text-zinc-400 hover:text-zinc-200'}`}
+          >
+            GIFs
+          </button>
+          <button
+            onClick={() => setTab('mine')}
+            className={`px-3 py-1 text-xs font-semibold rounded-full transition-colors flex items-center gap-1 ${tab === 'mine' ? 'bg-violet-500/20 text-violet-300' : 'text-zinc-400 hover:text-zinc-200'}`}
+          >
+            <Bookmark size={10} /> Mes GIFs
+          </button>
         </div>
-        {loading ? (
-          <div className="flex items-center justify-center py-8 text-text-muted text-sm">Chargement...</div>
-        ) : (
-          <div className="grid grid-cols-3 gap-1 max-h-52 overflow-y-auto">
-            {gifs.map(gif => (
-              <button key={gif.id} onClick={() => onSelect(gif)} className="aspect-square rounded-xl overflow-hidden hover:ring-2 hover:ring-violet-500 transition-all">
-                <img src={gif.preview_url || gif.url} alt={gif.title} className="w-full h-full object-cover" />
-              </button>
-            ))}
-            {gifs.length === 0 && !loading && (
-              <div className="col-span-3 text-center py-6 text-text-muted text-xs">Appuyez sur Entrée pour rechercher</div>
+        <button onClick={onClose} className="w-6 h-6 flex items-center justify-center text-zinc-500 hover:text-zinc-300">
+          <X size={14} />
+        </button>
+      </div>
+
+      {tab === 'tenor' && (
+        <>
+          {/* Search */}
+          <div className="px-3 pb-2">
+            <div className="flex items-center gap-2 bg-white/5 rounded-xl px-3 py-2">
+              <Search size={12} className="text-zinc-500 shrink-0" />
+              <input
+                type="text"
+                value={query}
+                onChange={e => handleQueryChange(e.target.value)}
+                placeholder="Rechercher un GIF..."
+                className="flex-1 bg-transparent text-xs text-zinc-200 placeholder:text-zinc-600 focus:outline-none"
+                style={{ fontSize: 16 }}
+                autoComplete="off"
+              />
+            </div>
+          </div>
+          {/* Grid */}
+          <div className="overflow-y-auto px-3 pb-3" style={{ maxHeight: 220 }}>
+            {loadingSearch ? (
+              <div className="flex items-center justify-center h-20 text-zinc-600 text-xs">Chargement...</div>
+            ) : results.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-20 gap-2">
+                <p className="text-zinc-600 text-xs">Aucun résultat</p>
+                <p className="text-zinc-700 text-[10px]">Ajoute GIPHY_API_KEY dans les variables d&apos;env</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 gap-1.5">
+                {results.map(gif => (
+                  <div key={gif.id} className="relative group cursor-pointer rounded-lg overflow-hidden bg-white/5" style={{ aspectRatio: '1' }} onClick={() => onSelect(gif)}>
+                    <Image src={gif.preview_url || gif.url} alt={gif.title} fill className="object-cover" unoptimized />
+                    {userId && (
+                      <button
+                        onClick={e => handleSaveGif(gif, e)}
+                        className={`absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center shadow transition-all ${savedIds.has(gif.id) ? 'bg-violet-500 text-white opacity-100' : 'bg-black/60 text-white opacity-0 group-hover:opacity-100'}`}
+                      >
+                        {savedIds.has(gif.id) ? <Bookmark size={9} fill="currentColor" /> : <Plus size={9} />}
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
             )}
           </div>
-        )}
-        <p className="text-[10px] text-text-muted text-center mt-1">Powered by GIPHY</p>
-      </div>
+        </>
+      )}
+
+      {tab === 'mine' && (
+        <>
+          {/* Category tabs */}
+          <div className="flex gap-1 px-3 pb-2 overflow-x-auto scrollbar-hide">
+            {myCategories.map(cat => (
+              <button
+                key={cat}
+                onClick={() => setMyCategory(cat)}
+                className={`shrink-0 px-2.5 py-1 text-[10px] font-semibold rounded-full transition-colors ${myCategory === cat ? 'bg-violet-500/20 text-violet-300' : 'text-zinc-500 hover:text-zinc-300'}`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+          {/* Grid */}
+          <div className="overflow-y-auto px-3 pb-3" style={{ maxHeight: 220 }}>
+            {filteredMyGifs.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-20 gap-1">
+                <p className="text-zinc-600 text-xs">Aucun GIF enregistré</p>
+                <p className="text-zinc-700 text-[10px]">Sauvegarde des GIFs depuis l&apos;onglet GIFs</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 gap-1.5">
+                {filteredMyGifs.map(gif => (
+                  <div
+                    key={gif.id}
+                    className="relative cursor-pointer rounded-lg overflow-hidden bg-white/5"
+                    style={{ aspectRatio: '1' }}
+                    onClick={() => onSelect({ id: gif.id, title: gif.title ?? '', url: gif.url, preview_url: gif.preview_url ?? gif.url, width: 200, height: 200 })}
+                  >
+                    <Image src={gif.preview_url ?? gif.url} alt={gif.title ?? 'gif'} fill className="object-cover" unoptimized />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </>
+      )}
     </motion.div>
   )
 }

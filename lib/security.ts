@@ -152,8 +152,8 @@ export function isSuspiciousUrl(url: string): boolean {
 // ─── Login Attempt Tracking (client-side) ────────────────────────────────────
 
 const LOGIN_KEY    = 'nx_login_attempts'
-const MAX_LOGIN    = 5
-const LOCKOUT_DUR  = 15 * 60 * 1000  // 15 min
+const MAX_LOGIN    = 50              // BETA: relaxed from 5 — restore to 10 before launch
+const LOCKOUT_DUR  = 60 * 1000      // BETA: 1 min lockout — restore to 15 * 60 * 1000 before launch
 
 interface AttemptData { count: number; lockedUntil: number | null }
 export interface LoginAttemptResult { allowed: boolean; remaining: number; lockedUntil: number | null }

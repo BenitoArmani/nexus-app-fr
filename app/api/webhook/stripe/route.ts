@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
+import { supabase } from '@/lib/supabase'
 import { safeLog } from '@/lib/security'
 
 export async function POST(req: NextRequest) {
@@ -23,15 +24,31 @@ export async function POST(req: NextRequest) {
 
   try {
     switch (event.type) {
-      case 'checkout.session.completed':
-        safeLog('info', 'Payment completed', { sessionId: event.data.object.id })
-        // TODO: créditer les coins ou activer l'abonnement
+      case 'checkout.session.completed': {
+        const session = event.data.object
+        const userId = session.metadata?.userId
+        const glyphs = parseInt(session.metadata?.glyphs || '0', 10)
+
+        if (userId && glyphs > 0) {
+          // Credit GLYPHS via SQL function (SECURITY DEFINER bypasses RLS)
+          const { error } = await supabase.rpc('credit_glyphs', {
+            p_user_id: userId,
+            p_amount: glyphs,
+            p_label: `Achat ${glyphs} GLYPHS via Stripe`,
+          })
+          if (error) {
+            safeLog('error', 'Failed to credit glyphs', { userId, glyphs, error: error.message })
+          } else {
+            safeLog('info', 'Glyphs credited', { userId, glyphs })
+          }
+        }
         break
+      }
       case 'customer.subscription.deleted':
         safeLog('info', 'Subscription cancelled', { subscriptionId: event.data.object.id })
         break
       default:
-        safeLog('info', `Unhandled event type: ${event.type}`)
+        break
     }
   } catch (err) {
     safeLog('error', 'Webhook handler error', { error: String(err) })

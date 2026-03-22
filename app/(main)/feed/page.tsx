@@ -21,6 +21,7 @@ import RewardedAd from '@/components/ui/RewardedAd'
 import { useUserProfile } from '@/hooks/useUserProfile'
 import PredictionsFeedCard from '@/components/feed/PredictionsFeedCard'
 import { FeedSkeleton } from '@/components/ui/Skeleton'
+import AdUnit from '@/components/ui/AdUnit'
 import Link from 'next/link'
 
 const TABS = ['Pour toi', 'Abonnements', 'Tendances']
@@ -119,6 +120,15 @@ export default function FeedPage() {
                 <React.Fragment key={post.id}>
                   <PostCard post={post} onLike={toggleLike} />
                   {i === 2 && <PredictionsFeedCard />}
+                  {(i + 1) % 5 === 0 && (
+                    <div className="px-4 py-3 border-b border-white/5">
+                      <AdUnit
+                        slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_FEED ?? 'feed-slot'}
+                        format="auto"
+                        className="w-full"
+                      />
+                    </div>
+                  )}
                 </React.Fragment>
               ))}
             </div>
@@ -182,6 +192,15 @@ export default function FeedPage() {
           {/* Rewarded ad */}
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.18 }}>
             <RewardedAd />
+          </motion.div>
+
+          {/* AdSense sidebar */}
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.19 }}>
+            <AdUnit
+              slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_SIDEBAR ?? 'sidebar-slot'}
+              format="rectangle"
+              className="w-full"
+            />
           </motion.div>
 
           {/* Stock market widget */}

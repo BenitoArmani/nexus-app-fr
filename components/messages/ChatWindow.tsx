@@ -144,7 +144,13 @@ export default function ChatWindow({ user, currentUserId, onBack }: ChatWindowPr
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {messages.map(msg => (
-          <MessageBubble key={msg.id} message={msg} isOwn={msg.sender_id === myId} />
+          <MessageBubble
+            key={msg.id}
+            message={msg}
+            isOwn={msg.sender_id === myId}
+            senderUserId={msg.sender_id !== myId ? msg.sender_id : undefined}
+            senderUsername={msg.sender_id !== myId ? user.username : undefined}
+          />
         ))}
         <div ref={bottomRef} />
       </div>
