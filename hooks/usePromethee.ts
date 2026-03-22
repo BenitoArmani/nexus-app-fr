@@ -33,7 +33,7 @@ export function usePromethee() {
     const count = getDailyCount()
     if (count >= FREE_LIMIT) {
       if (glyphBalance < EXTRA_COST) {
-        return { error: `Limite journalière atteinte. Il te faut ⬡ ${EXTRA_COST} pour +10 messages.` }
+        return { error: `Mes flammes journalières sont épuisées. Offre-moi ⬡ ${EXTRA_COST} GLYPHS et je t'accorderai 10 nouvelles réponses.` }
       }
       const ok = spendGlyphs(EXTRA_COST, '+10 messages Prométhée')
       if (!ok) return { error: 'Solde insuffisant' }

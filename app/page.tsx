@@ -427,6 +427,9 @@ export default function LandingPage() {
           <span className="font-black text-sm" style={{ background: 'linear-gradient(135deg,#a78bfa,#38bdf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>NEXUS</span>
         </div>
         <div className="flex flex-wrap justify-center gap-4 text-xs text-zinc-600 mb-3">
+          <Link href="/a-propos" className="hover:text-zinc-400 transition-colors">À propos</Link>
+          <Link href="/comment-ca-marche" className="hover:text-zinc-400 transition-colors">Comment ça marche</Link>
+          <Link href="/contact" className="hover:text-zinc-400 transition-colors">Contact</Link>
           <Link href="/terms" className="hover:text-zinc-400 transition-colors">CGU</Link>
           <Link href="/privacy" className="hover:text-zinc-400 transition-colors">Confidentialité</Link>
           <Link href="/roadmap" className="hover:text-zinc-400 transition-colors">Roadmap</Link>
