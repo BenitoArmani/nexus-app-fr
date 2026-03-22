@@ -4,9 +4,16 @@ import { safeLog } from '@/lib/security'
 
 export async function POST(req: NextRequest) {
   try {
-    const { fromUserId, toUserId, amount, context, contextId } = await req.json()
+    // Vérification JWT — on ne fait pas confiance au body pour l'identité de l'expéditeur
+    const token = req.headers.get('authorization')?.replace('Bearer ', '')
+    if (!token) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+    const { data: { user: authUser } } = await supabase.auth.getUser(token)
+    if (!authUser) return NextResponse.json({ error: 'Token invalide' }, { status: 401 })
 
-    if (!fromUserId || !toUserId || !amount) {
+    const { toUserId, amount, context, contextId } = await req.json()
+    const fromUserId = authUser.id // toujours l'utilisateur connecté, jamais le body
+
+    if (!toUserId || !amount) {
       return NextResponse.json({ error: 'Paramètres manquants' }, { status: 400 })
     }
     if (fromUserId === toUserId) {

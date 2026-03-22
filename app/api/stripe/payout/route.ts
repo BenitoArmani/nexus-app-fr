@@ -4,14 +4,20 @@ import { supabase } from '@/lib/supabase'
 import { safeLog } from '@/lib/security'
 
 const GLYPHS_PER_EURO = 110
-const MIN_GLYPHS = 1000 // minimum 1 000 GLYPHS (≈ 9€)
+const MIN_GLYPHS = 5000 // minimum 5 000 GLYPHS (≈ 45€) — marge de sécurité plateforme
 
 export async function POST(req: NextRequest) {
   try {
     if (!stripe) return NextResponse.json({ error: 'Stripe non configuré' }, { status: 503 })
 
-    const { userId, glyphs } = await req.json()
-    if (!userId) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+    // Vérification JWT — ne jamais faire confiance au userId du body
+    const token = req.headers.get('authorization')?.replace('Bearer ', '')
+    if (!token) return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+    const { data: { user: authUser } } = await supabase.auth.getUser(token)
+    if (!authUser) return NextResponse.json({ error: 'Token invalide' }, { status: 401 })
+
+    const { glyphs } = await req.json()
+    const userId = authUser.id // toujours depuis le JWT, jamais le body
     if (!glyphs || glyphs < MIN_GLYPHS) {
       return NextResponse.json({ error: `Minimum ${MIN_GLYPHS} GLYPHS pour un retrait` }, { status: 400 })
     }

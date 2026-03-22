@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Loader2 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useGlyphs } from '@/hooks/useGlyphs'
+import { supabase } from '@/lib/supabase'
 import toast from 'react-hot-toast'
 
 const PRESETS = [10, 50, 100, 500]
@@ -30,10 +31,11 @@ export default function TipButton({ toUserId, toUsername, context = 'post', cont
     if (!spendGlyphs(glyphs, `Tip à @${toUsername}`)) return
     setLoading(true)
     try {
+      const { data: { session } } = await supabase.auth.getSession()
       const res = await fetch('/api/glyphs/tip', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fromUserId: user.id, toUserId, amount: glyphs, context, contextId }),
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token ?? ''}` },
+        body: JSON.stringify({ toUserId, amount: glyphs, context, contextId }),
       })
       const data = await res.json()
       if (data.success) {

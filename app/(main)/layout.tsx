@@ -12,14 +12,14 @@ import AuthGuard from '@/components/auth/AuthGuard'
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   return (
     <AuthGuard>
-      <div className="min-h-screen bg-bg-primary">
+      <div className="min-h-[100dvh] bg-bg-primary">
         <NexusBanner />
         <Topbar />
         <DonationBanner />
         <Sidebar />
         <BubbleBar />
-        {/* pb-36 on mobile: 64px BottomNav + ~60px BubbleBar */}
-        <main className="pt-14 md:pt-0 md:pl-16 lg:pl-[240px] md:pr-[58px] pb-36 md:pb-0 min-h-screen">
+        {/* pb mobile : 64px BottomNav + ~60px BubbleBar + safe area iOS */}
+        <main className="pt-14 md:pt-0 md:pl-16 lg:pl-[240px] md:pr-[58px] md:pb-0 min-h-[100dvh]" style={{ paddingBottom: 'calc(144px + env(safe-area-inset-bottom, 0px))' }}>
           <ErrorBoundary>
             <PageTransition>
               {children}

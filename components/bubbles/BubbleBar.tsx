@@ -118,7 +118,7 @@ export default function BubbleBar() {
       </div>
 
       {/* Mobile: horizontal bar above bottom nav */}
-      <div className="fixed bottom-[64px] left-0 right-0 md:hidden z-30 bg-bg-primary/95 backdrop-blur-xl border-t border-white/5">
+      <div className="fixed left-0 right-0 md:hidden z-30 bg-bg-primary/95 backdrop-blur-xl border-t border-white/5" style={{ bottom: 'calc(64px + env(safe-area-inset-bottom, 0px))' }}>
         <div className="flex items-center gap-2 px-3 py-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
           {DEFAULT_BUBBLES.map(bubble => {
             const active = activeBubbleId === bubble.id
