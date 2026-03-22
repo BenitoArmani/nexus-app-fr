@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { safeLog } from '@/lib/security'
 
 const GLYPHS_PER_EURO = 110
-const MIN_GLYPHS = 5000 // minimum 5 000 GLYPHS (≈ 45€) — marge de sécurité plateforme
+const MIN_GLYPHS = 3000 // minimum 3 000 GLYPHS (≈ 27€) — équilibre motivation/sécurité
 
 export async function POST(req: NextRequest) {
   try {
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     // Get user data
     const { data: userData } = await supabase
       .from('users')
-      .select('stripe_account_id, stripe_account_status, glyphs_balance')
+      .select('stripe_account_id, stripe_account_status, glyphs_balance, created_at')
       .eq('id', userId)
       .single()
 
@@ -34,6 +34,24 @@ export async function POST(req: NextRequest) {
     }
     if ((userData.glyphs_balance ?? 0) < glyphs) {
       return NextResponse.json({ error: 'Solde GLYPHS insuffisant' }, { status: 400 })
+    }
+
+    // Compte doit avoir 30 jours d'ancienneté
+    const accountAgeDays = (Date.now() - new Date(userData.created_at).getTime()) / 86400000
+    if (accountAgeDays < 30) {
+      return NextResponse.json({ error: 'Retrait disponible 30 jours après inscription' }, { status: 400 })
+    }
+
+    // 1 retrait max par mois
+    const startOfMonth = new Date(); startOfMonth.setDate(1); startOfMonth.setHours(0,0,0,0)
+    const { count: payoutsThisMonth } = await supabase
+      .from('glyphs_transactions')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .ilike('event', '%Retrait%')
+      .gte('created_at', startOfMonth.toISOString())
+    if ((payoutsThisMonth ?? 0) >= 1) {
+      return NextResponse.json({ error: 'Un seul retrait par mois autorisé' }, { status: 400 })
     }
 
     const euros = Math.floor(glyphs / GLYPHS_PER_EURO)
