@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -18,7 +18,7 @@ const PASSWORD_RULES = [
   { label: '1 chiffre', test: (p: string) => /[0-9]/.test(p) },
 ]
 
-export default function RegisterPage() {
+function RegisterPage() {
   const [form, setForm] = useState({ username: '', email: '', password: '', confirm: '' })
   const [loading, setLoading] = useState(false)
   const [showPass, setShowPass] = useState(false)
@@ -366,4 +366,8 @@ export default function RegisterPage() {
       </motion.div>
     </div>
   )
+}
+
+export default function RegisterPageWrapper() {
+  return <Suspense><RegisterPage /></Suspense>
 }
