@@ -33,14 +33,14 @@ export const MOCK_CURRENT_USER: User = {
 }
 
 export const MOCK_STORIES: Story[] = [
-  { id: 's1',  user_id: '6',  media_url: 'https://picsum.photos/seed/story-karim/400/711',  expires_at: new Date(Date.now() + 3600000 * 20).toISOString(), views: 12400, created_at: new Date(Date.now() - 3600000 * 1).toISOString(),  user: MOCK_USERS[5]  },
-  { id: 's2',  user_id: '11', media_url: 'https://picsum.photos/seed/story-lea/400/711',    expires_at: new Date(Date.now() + 3600000 * 22).toISOString(), views: 8900,  created_at: new Date(Date.now() - 3600000 * 2).toISOString(),  user: MOCK_USERS[10] },
-  { id: 's3',  user_id: '7',  media_url: 'https://picsum.photos/seed/story-jade/400/711',   expires_at: new Date(Date.now() + 3600000 * 18).toISOString(), views: 21000, created_at: new Date(Date.now() - 3600000 * 0.5).toISOString(), user: MOCK_USERS[6]  },
-  { id: 's4',  user_id: '3',  media_url: 'https://picsum.photos/seed/story-nora/400/711',   expires_at: new Date(Date.now() + 3600000 * 15).toISOString(), views: 5600,  created_at: new Date(Date.now() - 3600000 * 4).toISOString(),  user: MOCK_USERS[2]  },
-  { id: 's5',  user_id: '14', media_url: 'https://picsum.photos/seed/story-hugo/400/711',   expires_at: new Date(Date.now() + 3600000 * 12).toISOString(), views: 4300,  created_at: new Date(Date.now() - 3600000 * 6).toISOString(),  user: MOCK_USERS[13] },
-  { id: 's6',  user_id: '1',  media_url: 'https://picsum.photos/seed/story-sophia/400/711', expires_at: new Date(Date.now() + 3600000 * 10).toISOString(), views: 3200,  created_at: new Date(Date.now() - 3600000 * 8).toISOString(),  user: MOCK_USERS[0]  },
-  { id: 's7',  user_id: '12', media_url: 'https://picsum.photos/seed/story-rayan/400/711',  expires_at: new Date(Date.now() + 3600000 * 8).toISOString(),  views: 6700,  created_at: new Date(Date.now() - 3600000 * 3).toISOString(),  user: MOCK_USERS[11] },
-  { id: 's8',  user_id: '4',  media_url: 'https://picsum.photos/seed/story-lucas/400/711',  expires_at: new Date(Date.now() + 3600000 * 5).toISOString(),  views: 1800,  created_at: new Date(Date.now() - 3600000 * 12).toISOString(), user: MOCK_USERS[3]  },
+  { id: 's1',  user_id: '6',  media_type: 'image', media_url: 'https://picsum.photos/seed/story-karim/400/711',  expires_at: new Date(Date.now() + 3600000 * 20).toISOString(), views: 12400, created_at: new Date(Date.now() - 3600000 * 1).toISOString(),  user: MOCK_USERS[5]  },
+  { id: 's2',  user_id: '11', media_type: 'image', media_url: 'https://picsum.photos/seed/story-lea/400/711',    expires_at: new Date(Date.now() + 3600000 * 22).toISOString(), views: 8900,  created_at: new Date(Date.now() - 3600000 * 2).toISOString(),  user: MOCK_USERS[10] },
+  { id: 's3',  user_id: '7',  media_type: 'image', media_url: 'https://picsum.photos/seed/story-jade/400/711',   expires_at: new Date(Date.now() + 3600000 * 18).toISOString(), views: 21000, created_at: new Date(Date.now() - 3600000 * 0.5).toISOString(), user: MOCK_USERS[6]  },
+  { id: 's4',  user_id: '3',  media_type: 'image', media_url: 'https://picsum.photos/seed/story-nora/400/711',   expires_at: new Date(Date.now() + 3600000 * 15).toISOString(), views: 5600,  created_at: new Date(Date.now() - 3600000 * 4).toISOString(),  user: MOCK_USERS[2]  },
+  { id: 's5',  user_id: '14', media_type: 'image', media_url: 'https://picsum.photos/seed/story-hugo/400/711',   expires_at: new Date(Date.now() + 3600000 * 12).toISOString(), views: 4300,  created_at: new Date(Date.now() - 3600000 * 6).toISOString(),  user: MOCK_USERS[13] },
+  { id: 's6',  user_id: '1',  media_type: 'image', media_url: 'https://picsum.photos/seed/story-sophia/400/711', expires_at: new Date(Date.now() + 3600000 * 10).toISOString(), views: 3200,  created_at: new Date(Date.now() - 3600000 * 8).toISOString(),  user: MOCK_USERS[0]  },
+  { id: 's7',  user_id: '12', media_type: 'image', media_url: 'https://picsum.photos/seed/story-rayan/400/711',  expires_at: new Date(Date.now() + 3600000 * 8).toISOString(),  views: 6700,  created_at: new Date(Date.now() - 3600000 * 3).toISOString(),  user: MOCK_USERS[11] },
+  { id: 's8',  user_id: '4',  media_type: 'image', media_url: 'https://picsum.photos/seed/story-lucas/400/711',  expires_at: new Date(Date.now() + 3600000 * 5).toISOString(),  views: 1800,  created_at: new Date(Date.now() - 3600000 * 12).toISOString(), user: MOCK_USERS[3]  },
 ]
 
 export const MOCK_POSTS: Post[] = [

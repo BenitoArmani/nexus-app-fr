@@ -126,6 +126,7 @@ export interface Story {
   id: string
   user_id: string
   media_url: string
+  media_type: 'image' | 'video'
   expires_at: string
   views: number
   created_at: string
