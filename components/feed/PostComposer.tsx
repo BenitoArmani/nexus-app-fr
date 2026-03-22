@@ -15,7 +15,7 @@ import toast from 'react-hot-toast'
 const GifPicker = dynamic(() => import('@/components/ui/GifPicker'), { ssr: false })
 
 interface PostComposerProps {
-  onPost: (content: string, mediaUrl?: string, mediaType?: 'image' | 'video', betsDisabled?: boolean) => void
+  onPost: (content: string, mediaUrl?: string, mediaType?: 'image' | 'video', betsDisabled?: boolean, isExplicit?: boolean) => void
 }
 
 export default function PostComposer({ onPost }: PostComposerProps) {
@@ -68,7 +68,7 @@ export default function PostComposer({ onPost }: PostComposerProps) {
     if (uploading) { toast.error('Upload en cours, patiente...'); return }
     const finalMedia = mediaUrl ?? selectedGif ?? undefined
     const finalType  = mediaUrl ? mediaType ?? undefined : selectedGif ? 'image' : undefined
-    onPost(content, finalMedia, finalType ?? undefined, betsDisabled)
+    onPost(content, finalMedia, finalType ?? undefined, betsDisabled, isExplicit)
     setContent('')
     setFocused(false)
     setSelectedGif(null)
@@ -114,6 +114,7 @@ export default function PostComposer({ onPost }: PostComposerProps) {
           <textarea
             value={content}
             onChange={e => setContent(e.target.value)}
+            maxLength={500}
             onFocus={() => setFocused(true)}
             placeholder="Quoi de neuf ? Partagez quelque chose..."
             rows={focused ? 3 : 1}

@@ -1,5 +1,5 @@
 'use client'
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 
@@ -7,12 +7,19 @@ const STORAGE_KEY = 'nexus_glyphs_balance'
 const TX_KEY      = 'nexus_glyphs_transactions'
 
 export function useGlyphs() {
-  const [balance, setBalance] = useState<number>(2500)
+  const [balance, setBalance] = useState<number>(0)
+  const balanceRef = useRef<number>(0) // source de vérité synchrone — NON modifiable depuis l'extérieur
 
-  // On mount: load from localStorage, then sync from Supabase if logged in
+  const updateBalance = (val: number) => {
+    balanceRef.current = val
+    setBalance(val)
+    localStorage.setItem(STORAGE_KEY, String(val))
+  }
+
+  // On mount: charge depuis Supabase (source de vérité), localStorage = cache vitesse
   useEffect(() => {
-    const local = parseInt(localStorage.getItem(STORAGE_KEY) || '2500', 10)
-    setBalance(local)
+    const cached = parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10)
+    if (cached > 0) { balanceRef.current = cached; setBalance(cached) }
 
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) return
@@ -23,23 +30,18 @@ export function useGlyphs() {
         .single()
         .then(({ data }) => {
           if (data?.glyphs_balance != null) {
-            setBalance(data.glyphs_balance)
-            localStorage.setItem(STORAGE_KEY, String(data.glyphs_balance))
+            updateBalance(data.glyphs_balance)
           }
         })
     })
   }, [])
 
-  const getLocal = () => parseInt(localStorage.getItem(STORAGE_KEY) || '2500', 10)
-
   const addGlyphs = useCallback((amount: number, label: string) => {
-    const newBalance = getLocal() + amount
-    localStorage.setItem(STORAGE_KEY, String(newBalance))
-    setBalance(newBalance)
+    const newBalance = balanceRef.current + amount
+    updateBalance(newBalance)
     const txs = JSON.parse(localStorage.getItem(TX_KEY) || '[]')
     txs.unshift({ id: Date.now().toString(), amount, event: label, created_at: new Date().toISOString() })
     localStorage.setItem(TX_KEY, JSON.stringify(txs.slice(0, 50)))
-    // Persist to Supabase
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) return
       supabase.rpc('credit_glyphs', { p_user_id: user.id, p_amount: amount, p_label: label }).then(() => {})
@@ -50,18 +52,16 @@ export function useGlyphs() {
   }, [])
 
   const spendGlyphs = useCallback((amount: number, label: string): boolean => {
-    const current = getLocal()
-    if (current < amount) {
+    // Vérifie le ref (non modifiable depuis DevTools) — pas localStorage
+    if (balanceRef.current < amount) {
       toast.error(`Solde insuffisant — il te faut ⬡ ${amount}`)
       return false
     }
-    const newBalance = current - amount
-    localStorage.setItem(STORAGE_KEY, String(newBalance))
-    setBalance(newBalance)
+    const newBalance = balanceRef.current - amount
+    updateBalance(newBalance)
     const txs = JSON.parse(localStorage.getItem(TX_KEY) || '[]')
     txs.unshift({ id: Date.now().toString(), amount: -amount, event: label, created_at: new Date().toISOString() })
     localStorage.setItem(TX_KEY, JSON.stringify(txs.slice(0, 50)))
-    // Persist to Supabase (deduct)
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) return
       supabase.rpc('credit_glyphs', { p_user_id: user.id, p_amount: -amount, p_label: label }).then(() => {})

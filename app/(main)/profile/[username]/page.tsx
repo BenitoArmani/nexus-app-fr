@@ -24,6 +24,7 @@ export default function ProfilePage() {
   const [following, setFollowing] = useState(false)
   const [loading, setLoading] = useState(true)
   const [editOpen, setEditOpen] = useState(false)
+  const [followersCount, setFollowersCount] = useState(0)
 
   const isOwn = currentUser?.username === username
 
@@ -41,6 +42,25 @@ export default function ProfilePage() {
 
       if (userData) {
         setProfile(userData)
+
+        // Charger le nombre de followers réels
+        const { count: fCount } = await supabase
+          .from('follows')
+          .select('*', { count: 'exact', head: true })
+          .eq('following_id', userData.id)
+        setFollowersCount(fCount ?? userData.followers_count ?? 0)
+
+        // Vérifier si l'utilisateur courant suit ce profil
+        if (currentUser) {
+          const { data: followData } = await supabase
+            .from('follows')
+            .select('id')
+            .eq('follower_id', currentUser.id)
+            .eq('following_id', userData.id)
+            .single()
+          setFollowing(!!followData)
+        }
+
         const { data: postsData } = await supabase
           .from('posts')
           .select('*, users:user_id(*)')
@@ -68,7 +88,17 @@ export default function ProfilePage() {
     loadProfile()
   }, [username, currentUser])
 
-  const handleFollow = () => setFollowing(f => !f)
+  const handleFollow = async () => {
+    if (!currentUser || !profile) return
+    const newFollowing = !following
+    setFollowing(newFollowing)
+    setFollowersCount(c => newFollowing ? c + 1 : Math.max(0, c - 1))
+    if (newFollowing) {
+      await supabase.from('follows').insert({ follower_id: currentUser.id, following_id: profile.id })
+    } else {
+      await supabase.from('follows').delete().eq('follower_id', currentUser.id).eq('following_id', profile.id)
+    }
+  }
 
   if (loading) return <ProfileSkeleton />
 
@@ -141,7 +171,7 @@ export default function ProfilePage() {
         <div className="flex gap-6 mb-4">
           {[
             { label: 'Posts', value: posts.length },
-            { label: 'Abonnés', value: profile.followers_count },
+            { label: 'Abonnés', value: followersCount },
             { label: 'Abonnements', value: profile.following_count },
           ].map(({ label, value }) => (
             <div key={label} className="text-center">

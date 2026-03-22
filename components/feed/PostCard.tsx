@@ -71,7 +71,7 @@ export default function PostCard({ post, onLike }: PostCardProps) {
   }, [post.liked_by_me, onLike, play])
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(`https://nexussociable.fr/post/${post.id}`).catch(() => {})
+    navigator.clipboard.writeText(`${process.env.NEXT_PUBLIC_APP_URL ?? 'https://nexussociable.fr'}/post/${post.id}`).catch(() => {})
     toast.success('Lien copié !', { style: { background: '#1a0a2e', color: '#c084fc', border: '1px solid rgba(139,92,246,0.3)', borderRadius: '12px' } })
     setShowMenu(false)
   }
@@ -210,7 +210,7 @@ export default function PostCard({ post, onLike }: PostCardProps) {
           </button>
 
           <button
-            onClick={() => { navigator.clipboard.writeText(`https://nexussociable.fr/post/${post.id}`).catch(() => {}); toast.success('Lien copié !', { style: { background: '#1a0a2e', color: '#c084fc', border: '1px solid rgba(139,92,246,0.3)', borderRadius: '12px' } }) }}
+            onClick={() => { navigator.clipboard.writeText(`${process.env.NEXT_PUBLIC_APP_URL ?? 'https://nexussociable.fr'}/post/${post.id}`).catch(() => {}); toast.success('Lien copié !', { style: { background: '#1a0a2e', color: '#c084fc', border: '1px solid rgba(139,92,246,0.3)', borderRadius: '12px' } }) }}
             className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl text-sm font-medium text-text-muted hover:text-violet-400 hover:bg-violet-500/5 transition-colors touch-active"
           >
             <Share2 size={18} /> Partager

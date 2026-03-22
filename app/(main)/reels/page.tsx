@@ -53,7 +53,7 @@ export default function ReelsPage() {
   const currentReelIndex = currentSlot?.type === 'reel' ? currentSlot.index : -1
 
   return (
-    <div className="relative h-[calc(100vh-56px)] overflow-hidden bg-black" ref={containerRef}>
+    <div className="relative overflow-hidden bg-black" style={{ height: 'calc(100dvh - 56px)' }} ref={containerRef}>
       {/* Reel stack */}
       <div className="relative h-full flex items-center justify-center">
         <div className="relative w-full max-w-sm h-full mx-auto">
